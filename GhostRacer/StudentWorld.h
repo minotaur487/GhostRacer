@@ -2,10 +2,13 @@
 #define STUDENTWORLD_H_
 
 #include "GameWorld.h"
-#include "Actor.h"  // Added by me
 #include <string>
+// Added by me
+#include "Actor.h"
+#include <vector>
+using namespace std;
 
-// Students:  Add code to this file, StudentWorld.cpp, Actor.h, and Actor.cpp
+// Students:  Add code to this file, StudentWorld.cpp, Character.h, and Character.cpp
 
 class StudentWorld : public GameWorld
 {
@@ -18,6 +21,7 @@ public:
 
 private:
     GhostRacer* m_ghostRacer;
+    vector<Actor*> m_actorList;
 };
 
 #endif // STUDENTWORLD_H_
