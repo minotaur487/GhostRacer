@@ -8,7 +8,8 @@ class StudentWorld;
 class Actor : public GraphObject
 {
 public:
-	Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth);
+	Actor::Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
+		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {}
 	virtual ~Actor() {}
 
 		// Functions that do
@@ -28,7 +29,7 @@ public:
 	double getVertSpeed() const { return m_param.m_vertSpeed; }
 	double getHorizSpeed() const { return m_param.m_horizSpeed; }
 	bool isCollidable() const { return m_param.m_collidable; }
-	bool isAlive() const { return m_alive; }
+	virtual bool isAlive() const { return m_alive; }
 	bool isSpinnable() const { return m_param.m_spinnable; }
 	bool isHealable() const { return m_param.m_healable; }
 	bool isAffectedByHW() const { return m_param.m_affectedByHW; }
@@ -66,6 +67,7 @@ public:
 
 	int setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
 	int damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
+	virtual bool isAlive() { return getHitPoints() > 0; }
 
 	// Functions that get/return
 
@@ -81,6 +83,9 @@ class GhostRacer : public Character
 public:
 	GhostRacer(StudentWorld* wPtr);	// Ghost racer doesn't seem to have a horiz speed		!!!
 	virtual ~GhostRacer() {}
+
+	// Functions that do
+
 	virtual void doSomething();
 
 	// Functions that get/return

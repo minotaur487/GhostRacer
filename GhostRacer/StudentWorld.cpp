@@ -25,9 +25,6 @@ int StudentWorld::init()
     m_ghostRacer = new GhostRacer(this);
 
     // Initialize yellow border lines
-    int N = VIEW_HEIGHT / SPRITE_HEIGHT;    // N number of border lines on each side
-    int LEFT_EDGE = ROAD_CENTER - ROAD_WIDTH / 2;
-    int RIGHT_EDGE = ROAD_CENTER + ROAD_WIDTH / 2;
     for (int j = 0; j < N; j++)
     {
         m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE, j * SPRITE_HEIGHT, this, m_ghostRacer));

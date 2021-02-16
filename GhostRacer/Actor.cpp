@@ -2,7 +2,24 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
 
-// Students:  Add code to this file, Character.h, StudentWorld.h, and StudentWorld.cpp
+
+///////////////////////////////////////////////
+//
+//	Ghost Racer Class
+//
+///////////////////////////////////////////////
+
+GhostRacer::GhostRacer(StudentWorld* wPtr)
+	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0), m_unitsOfHolyWater(10)
+{
+	setVertSpeed(0.0);
+	setHorizSpeed(0.0);
+	setWorld(wPtr);
+	setCollidable(true);
+	setHealable(true);
+	setSpinnable(false);	// Check healable and spinnable				!!!
+}
+
 void GhostRacer::doSomething()
 {
 	if (!isAlive())
@@ -16,6 +33,25 @@ void GhostRacer::doSomething()
 //
 //	}
 }
+
+
+///////////////////////////////////////////////
+//
+//	BorderLine Class
+//
+///////////////////////////////////////////////
+
+BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr, GhostRacer* grPtr)
+// Contradiction with depth, says 2 and 1 at different parts in spec			!!!
+	: Environmentals(imageID, startX, startY, 0, 2.0, grPtr)
+{
+	setVertSpeed(-4.0);
+	setHorizSpeed(0.0);
+	setWorld(wPtr);
+	setCollidable(false);
+	setHealable(false);
+	setSpinnable(false);	// Check healable and spinnable				!!!
+} // CHECK DEPTH
 
 void BorderLine::doSomething()
 {
@@ -34,29 +70,3 @@ void BorderLine::doSomething()
 		return;
 	}
 }
-
-Actor::Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
-	: GraphObject(imageID, startX, startY, dir, size, depth) {}
-
-GhostRacer::GhostRacer(StudentWorld* wPtr)
-	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0), m_unitsOfHolyWater(10)
-{
-	setVertSpeed(0.0);
-	setHorizSpeed(0.0);
-	setWorld(wPtr);
-	setCollidable(true);
-	setHealable(true);
-	setSpinnable(false);	// Check healable and spinnable				!!!
-}
-
-BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr, GhostRacer* grPtr)
-// Contradiction with depth, says 2 and 1 at different parts in spec			!!!
-	: Environmentals(imageID, startX, startY, 0, 2.0, grPtr)
-{
-	setVertSpeed(-4.0);
-	setHorizSpeed(0.0);
-	setWorld(wPtr);
-	setCollidable(false);
-	setHealable(false);
-	setSpinnable(false);	// Check healable and spinnable				!!!
-} // CHECK DEPTH

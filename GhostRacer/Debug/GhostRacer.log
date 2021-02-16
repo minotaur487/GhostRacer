@@ -1,7 +1,4 @@
 ﻿  Actor.cpp
-  GameController.cpp
-  GameWorld.cpp
-  main.cpp
   StudentWorld.cpp
   Generating Code...
 C:\CS32\Project 3\GhostRacer\GhostRacer\StudentWorld.cpp(59): warning C4715: 'StudentWorld::move': not all control paths return a value

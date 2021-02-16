@@ -8,7 +8,10 @@
 #include <vector>
 using namespace std;
 
-// Students:  Add code to this file, StudentWorld.cpp, Character.h, and Character.cpp
+    // Student World Constants                  !!! I don't know if I'm allowed to do this since I can't add to the actual
+const int LEFT_EDGE = ROAD_CENTER - ROAD_WIDTH / 2;       // header file for this
+const int RIGHT_EDGE = ROAD_CENTER + ROAD_WIDTH / 2;
+const int N = VIEW_HEIGHT / SPRITE_HEIGHT;    // N number of border lines on each side
 
 class StudentWorld : public GameWorld
 {
