@@ -17,7 +17,17 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 	setWorld(wPtr);
 	setCollidable(true);
 	setHealable(true);
-	setSpinnable(false);	// Check healable and spinnable				!!!
+	setSpinnable(true);	// Check healable and spinnable				!!!
+}
+
+void GhostRacer::moveGR()
+{
+	double maxShiftPerTick = 4.0;
+	int dir = getDirection();			// Some stuff in algo seems superfluous				!!!
+	double delX = cos(dir) * maxShiftPerTick;
+	double curX = getX();
+	double curY = getY();
+	moveTo(curX + delX, curY);
 }
 
 void GhostRacer::doSomething()
@@ -25,13 +35,73 @@ void GhostRacer::doSomething()
 	if (!isAlive())
 		return;
 
-//	if (getX() <= leftBoundary)
-//	{
-//		if (getDirection() > 90)
-//			damageItself(10);
-//		setDirection(82);
-//
-//	}
+	int dir = getDirection();
+	double vSpeed = getVertSpeed();
+	if (getX() <= LEFT_EDGE)
+	{
+		if (dir > 90)
+		{
+			damageItself(10);
+			if (!isAlive())
+			{
+				setLife(false);
+				getWorld()->playSound(SOUND_PLAYER_DIE);
+			}
+		}
+		setDirection(82);
+		getWorld()->playSound(SOUND_VEHICLE_CRASH);
+		moveGR();
+	}
+	if (getX() >= RIGHT_EDGE)		// CODE IS VERY SIMILAR TO LEFT EDGE			!!!
+	{
+		if (dir < 90)
+		{
+			damageItself(10);
+			if (!isAlive())
+			{
+				setLife(false);
+				getWorld()->playSound(SOUND_PLAYER_DIE);
+			}
+		}
+		setDirection(98);
+		getWorld()->playSound(SOUND_VEHICLE_CRASH);
+		moveGR();
+	}
+	int key;
+	if (getWorld()->getKey(key))
+	{
+		switch (key)
+		{
+		case KEY_PRESS_SPACE:
+			if (getUnitsOfHolyWater() < 1)		//		NEEDS TO BE IMPLEMENTED		!!!
+				break;
+			break;
+		case KEY_PRESS_LEFT:
+			if (dir >= 114)
+				break;
+			setDirection(dir + 8);
+			moveGR();
+			break;
+		case KEY_PRESS_RIGHT:
+			if (dir <= 66)
+				break;
+			setDirection(dir - 8);
+			moveGR();
+			break;
+		case KEY_PRESS_UP:
+			if (vSpeed >= 5)
+				break;
+			setVertSpeed(vSpeed + 1);
+			moveGR();
+			break;
+		case KEY_PRESS_DOWN:
+			if (vSpeed <= -1)
+				break;
+			setVertSpeed(vSpeed - 1);
+			moveGR();
+			break;
+		}
+	}
 }
 
 

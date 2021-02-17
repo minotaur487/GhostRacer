@@ -65,12 +65,12 @@ public:
 
 	// Functions that do
 
-	int setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
-	int damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
-	virtual bool isAlive() { return getHitPoints() > 0; }
+	void setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
+	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
 
 	// Functions that get/return
 
+	virtual bool isAlive() { return getHitPoints() > 0; }
 	int getHitPoints() const { return m_hitPoints; }
 	//bool isAlive() const { return m_hitPoints > 0; }	// Problematic for determining consumables as alive			!!!
 
@@ -87,6 +87,7 @@ public:
 	// Functions that do
 
 	virtual void doSomething();
+	void moveGR();
 
 	// Functions that get/return
 
