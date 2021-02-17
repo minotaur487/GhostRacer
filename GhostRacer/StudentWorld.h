@@ -5,7 +5,7 @@
 #include <string>
 // Added by me
 #include "Actor.h"
-#include <vector>
+#include <list>
 using namespace std;
 
     // Student World Constants                  !!! I don't know if I'm allowed to do this since I can't add to the actual
@@ -24,7 +24,7 @@ public:
 
 private:
     GhostRacer* m_ghostRacer;
-    vector<Actor*> m_actorList;
+    list<Actor*> m_actorList;
 };
 
 #endif // STUDENTWORLD_H_

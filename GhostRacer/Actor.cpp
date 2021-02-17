@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////
 
 GhostRacer::GhostRacer(StudentWorld* wPtr)
-	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0), m_unitsOfHolyWater(10)
+	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0), m_unitsOfHolyWater(10), m_soulsSaved(0)
 {
 	setVertSpeed(0.0);
 	setHorizSpeed(0.0);

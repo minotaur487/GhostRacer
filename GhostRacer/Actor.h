@@ -88,12 +88,16 @@ public:
 
 	virtual void doSomething();
 	void moveGR();
+	void incrementSoulsSaved() { m_soulsSaved++; }
+	void decrementSoulsSaved() { m_soulsSaved--; }
 
 	// Functions that get/return
 
 	int getUnitsOfHolyWater() const { return m_unitsOfHolyWater; }
+	int getNumOfSoulsSaved() const { return m_soulsSaved; }
 
 private:
+	int m_soulsSaved;
 	int m_unitsOfHolyWater;
 };
 

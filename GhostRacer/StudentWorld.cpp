@@ -1,6 +1,7 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
 #include <string>
+#include <list>
 using namespace std;
 
 GameWorld* createStudentWorld(string assetPath)
@@ -46,13 +47,60 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-    // Notice that the return value GWSTATUS_PLAYER_DIED will cause our framework to end the current level.
+    list<Actor*>::iterator it;
+    // Have each active actor do something
+    m_ghostRacer->doSomething();
     if (!m_ghostRacer->isAlive())
     {
         decLives();
         return GWSTATUS_PLAYER_DIED;
     }
-    m_ghostRacer->doSomething();
+    else if (m_ghostRacer->getNumOfSoulsSaved() >= getLevel() * 2 + 5)
+    {
+        //AWARD BONUS POINTS                                            !!!
+        return GWSTATUS_FINISHED_LEVEL;
+    }
+    for (it = m_actorList.begin(); it != m_actorList.end(); it++)
+    {
+        if ((*it)->isAlive())
+        {
+            (*it)->doSomething();
+            if (!m_ghostRacer->isAlive())
+            {
+                decLives();
+                return GWSTATUS_PLAYER_DIED;
+            }
+            else if (m_ghostRacer->getNumOfSoulsSaved() >= getLevel() * 2 + 5)
+            {
+                //AWARD BONUS POINTS                                            !!!
+                return GWSTATUS_FINISHED_LEVEL;
+            }
+        }
+    }
+
+    // Delete dead actors
+    list<Actor*>::iterator temp;
+    for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
+    {
+        if (!(*it)->isAlive())
+        {
+            if (it == m_actorList.begin())
+                temp++;
+            delete (*it);
+            m_actorList.erase(it);
+            it = temp;
+        }
+        if (it != m_actorList.begin() && it != temp)
+            temp = it;
+    }
+    
+    // Add necessary new objects
+    //  !!! //
+
+    // Update status text
+    // !!!  //
+
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
