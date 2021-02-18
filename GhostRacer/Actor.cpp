@@ -86,26 +86,35 @@ void GhostRacer::doSomething()
 			break;
 		case KEY_PRESS_LEFT:
 			if (dir >= 114)
+			{
+				moveGR();
 				break;
+			}
 			setDirection(dir + 8);
 			moveGR();
 			break;
 		case KEY_PRESS_RIGHT:
 			if (dir <= 66)
+			{
+				moveGR();
 				break;
-			setDirection(dir - 8);
+			}			setDirection(dir - 8);
 			moveGR();
 			break;
 		case KEY_PRESS_UP:
 			if (vSpeed >= 5)
+			{
+				moveGR();
 				break;
-			setVertSpeed(vSpeed + 1);
+			}			setVertSpeed(vSpeed + 1);
 			moveGR();
 			break;
 		case KEY_PRESS_DOWN:
 			if (vSpeed <= -1)
+			{
+				moveGR();
 				break;
-			setVertSpeed(vSpeed - 1);
+			}			setVertSpeed(vSpeed - 1);
 			moveGR();
 			break;
 		}
