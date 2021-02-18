@@ -28,12 +28,12 @@ int StudentWorld::init()
     // Initialize yellow border lines
     for (int j = 0; j < N; j++)
     {
-        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE, j * SPRITE_HEIGHT, this, m_ghostRacer));
-        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE, j * SPRITE_HEIGHT, this, m_ghostRacer));
+        int y = j * SPRITE_HEIGHT;
+        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE, y, this, m_ghostRacer));
+        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE, y, this, m_ghostRacer));
     }
 
     // Initialize white border lines
-    int M = VIEW_HEIGHT / (4 * SPRITE_HEIGHT);
     for (int j = 0; j < M; j++)
     {
         int y = j * (4 * SPRITE_HEIGHT);
@@ -42,6 +42,9 @@ int StudentWorld::init()
         m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, RIGHT_EDGE - ROAD_WIDTH / 3, y, 
             this, m_ghostRacer));
     }
+    // Save last white border line added
+    m_lastWhiteLine = *(--m_actorList.end());
+
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -95,7 +98,26 @@ int StudentWorld::move()
     }
     
     // Add necessary new objects
-    //  !!! //
+    int newBorderY = VIEW_HEIGHT - SPRITE_HEIGHT;
+    double deltaY = newBorderY - m_lastWhiteLine->getY();
+
+    if (deltaY >= SPRITE_HEIGHT)
+    {
+        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE,
+            newBorderY, this, m_ghostRacer));
+        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE,
+            newBorderY, this, m_ghostRacer));
+    }
+    if (deltaY >= 4 * SPRITE_HEIGHT)
+    {
+        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, LEFT_EDGE + ROAD_WIDTH / 3,
+            newBorderY, this, m_ghostRacer));
+        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, RIGHT_EDGE - ROAD_WIDTH / 3,
+            newBorderY, this, m_ghostRacer));
+
+        // Save last white border line added
+        m_lastWhiteLine = *(--m_actorList.end());
+    }
 
     // Update status text
     // !!!  //
