@@ -1,7 +1,9 @@
 #include "Actor.h"
 #include "StudentWorld.h"
 #include "GameConstants.h"
+#include <math.h>
 
+#define PI 3.14159265
 
 ///////////////////////////////////////////////
 //
@@ -24,7 +26,7 @@ void GhostRacer::moveGR()
 {
 	double maxShiftPerTick = 4.0;
 	int dir = getDirection();			// Some stuff in algo seems superfluous				!!!
-	double delX = cos(dir) * maxShiftPerTick;
+	double delX = cos(dir * PI / 180.0) * maxShiftPerTick;
 	double curX = getX();
 	double curY = getY();
 	moveTo(curX + delX, curY);
@@ -35,8 +37,8 @@ void GhostRacer::doSomething()
 	if (!isAlive())
 		return;
 
+	// Check for swerving into boundary
 	int dir = getDirection();
-	double vSpeed = getVertSpeed();
 	if (getX() <= LEFT_EDGE)
 	{
 		if (dir > 90)
@@ -45,12 +47,13 @@ void GhostRacer::doSomething()
 			if (!isAlive())
 			{
 				setLife(false);
-				getWorld()->playSound(SOUND_PLAYER_DIE);
+				getWorld()->playSound(SOUND_PLAYER_DIE);			// NOT SURE IF I SHOULD RETURN HERE...SAME FOR RIGHT_EDGE
 			}
 		}
 		setDirection(82);
 		getWorld()->playSound(SOUND_VEHICLE_CRASH);
 		moveGR();
+		return;
 	}
 	if (getX() >= RIGHT_EDGE)		// CODE IS VERY SIMILAR TO LEFT EDGE			!!!
 	{
@@ -66,8 +69,13 @@ void GhostRacer::doSomething()
 		setDirection(98);
 		getWorld()->playSound(SOUND_VEHICLE_CRASH);
 		moveGR();
+		return;
 	}
+
+	// Check for inputs
 	int key;
+	double vSpeed = getVertSpeed();
+	dir = getDirection();
 	if (getWorld()->getKey(key))
 	{
 		switch (key)
@@ -102,6 +110,8 @@ void GhostRacer::doSomething()
 			break;
 		}
 	}
+	else
+		moveGR();
 }
 
 
