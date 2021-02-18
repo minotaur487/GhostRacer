@@ -128,4 +128,7 @@ int StudentWorld::move()
 void StudentWorld::cleanUp()
 {
     delete m_ghostRacer;
+    list<Actor*>::iterator it;
+    for (it = m_actorList.begin(); it != m_actorList.end(); it++)
+        delete* it;
 }

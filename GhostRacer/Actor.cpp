@@ -136,13 +136,13 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 void BorderLine::doSomething()
 {
 	// Calculate speed
-	double v_speed = getVertSpeed() - getGhostRacer()->getVertSpeed();
-	double h_speed = getHorizSpeed();
+	double vSpeed = getVertSpeed() - getGhostRacer()->getVertSpeed();
+	double hSpeed = getHorizSpeed();
 
 	// Get new position and update
-	double new_y = getY() + v_speed;
-	double new_x = getX() + h_speed;
-	moveTo(new_x, new_y);
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
 
 	if (getX() < 0 || getY() < 0 || getX() > VIEW_WIDTH || getY() > VIEW_HEIGHT)	// Check to see if out of bounds issues occur and move up if so			!!!
 	{
