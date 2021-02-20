@@ -26,7 +26,7 @@ public:
 private:
     GhostRacer* m_ghostRacer;
     list<Actor*> m_actorList;
-    Actor* m_lastWhiteLine;     //  CAN'T SET A BORDERLINE POINTER TO AN ACTOR POINTER???       !!!
+    int m_lastBDY;
 };
 
-#endif // STUDENTWORLD_H_
+#endif // STUDENTWORLD_H

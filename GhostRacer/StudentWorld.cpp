@@ -43,7 +43,8 @@ int StudentWorld::init()
             this, m_ghostRacer));
     }
     // Save last white border line added
-    m_lastWhiteLine = *(--m_actorList.end());
+    Actor* lastWB = *(--m_actorList.end());
+    m_lastBDY = lastWB->getY();
 
     return GWSTATUS_CONTINUE_GAME;
 }
@@ -99,7 +100,9 @@ int StudentWorld::move()
     
     // Add necessary new objects
     int newBorderY = VIEW_HEIGHT - SPRITE_HEIGHT;
-    double deltaY = newBorderY - m_lastWhiteLine->getY();
+    double lastWLSpeed = -4.0 - m_ghostRacer->getVertSpeed();
+    m_lastBDY = m_lastBDY + lastWLSpeed;
+    double deltaY = newBorderY - m_lastBDY;
 
     if (deltaY >= SPRITE_HEIGHT)
     {
@@ -116,7 +119,8 @@ int StudentWorld::move()
             newBorderY, this, m_ghostRacer));
 
         // Save last white border line added
-        m_lastWhiteLine = *(--m_actorList.end());
+        Actor* lastWB = *(--m_actorList.end());
+        m_lastBDY = lastWB->getY();
     }
 
     // Update status text

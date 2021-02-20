@@ -8,7 +8,7 @@ class StudentWorld;
 class Actor : public GraphObject
 {
 public:
-	Actor::Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
+	Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
 		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {}
 	virtual ~Actor() {}
 
@@ -34,16 +34,9 @@ public:
 	bool isHealable() const { return m_param.m_healable; }
 	bool isAffectedByHW() const { return m_param.m_affectedByHW; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
-protected:
-	// No data members under protected?						!!!
 private:
 	struct additionalParam
 	{
-		//Check if this is good practice				!!!
-		//additionalParam(double vertSpeed, double horizSpeed, bool collidable, StudentWorld* wPtr, bool healable, bool spinnable, bool affectedByHolyWater)
-		//	: m_affectedByHW(affectedByHolyWater), m_worldPtr(wPtr), m_healable(healable), m_spinnable(spinnable),
-		//	m_collidable(collidable), m_vertSpeed(vertSpeed), m_horizSpeed(horizSpeed) {}
-
 		double m_vertSpeed;
 		double m_horizSpeed;
 		bool m_collidable;
@@ -72,7 +65,6 @@ public:
 
 	virtual bool isAlive() { return getHitPoints() > 0; }
 	int getHitPoints() const { return m_hitPoints; }
-	//bool isAlive() const { return m_hitPoints > 0; }	// Problematic for determining consumables as alive			!!!
 
 private:
 	int m_hitPoints;
@@ -105,7 +97,6 @@ class Goodies : public Actor
 {
 public:
 	Goodies(int imageID, double startX, double startY, int dir, double size, GhostRacer* grPtr, unsigned int depth = 2)
-		// Check if Goodies are supposed to be "Alive"																!!!
 		: Actor(imageID, startX, startY, dir, size, depth), m_gRacerPtr(grPtr) {}
 	virtual ~Goodies() {};
 	//virtual bool isActive() = 0;			// FOR CONSUMABLES I THINK				!!!
