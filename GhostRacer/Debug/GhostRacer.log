@@ -3,8 +3,5 @@
   GameWorld.cpp
   main.cpp
   StudentWorld.cpp
-C:\CS32\Project 3\GhostRacer\GhostRacer\StudentWorld.cpp(47,29): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\CS32\Project 3\GhostRacer\GhostRacer\StudentWorld.cpp(104,27): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-C:\CS32\Project 3\GhostRacer\GhostRacer\StudentWorld.cpp(123,33): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
   Generating Code...
   GhostRacer.vcxproj -> C:\CS32\Project 3\GhostRacer\Debug\GhostRacer.exe

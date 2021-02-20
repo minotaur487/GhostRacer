@@ -24,11 +24,11 @@ public:
     virtual void cleanUp();
 
     // getter functions
-    Actor* getGhostRacer() { return m_ghostRacer; }
+    Actor* getGhostRacer() { return m_ghostRacer; }     // Why did I make the return type Actor?        !!!
 private:
     GhostRacer* m_ghostRacer;
     list<Actor*> m_actorList;
-    int m_lastBDY;
+    double m_lastBDY;
 };
 
 #endif // STUDENTWORLD_H

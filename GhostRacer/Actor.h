@@ -15,8 +15,8 @@ public:
 		// Functions that do
 
 	virtual void doSomething() = 0;
-	void setVertSpeed(double speed) { m_param.m_vertSpeed = speed; }
-	void setHorizSpeed(double speed) { m_param.m_horizSpeed = speed; }
+	void setVertSpeed(int speed) { m_param.m_vertSpeed = speed; }
+	void setHorizSpeed(int speed) { m_param.m_horizSpeed = speed; }
 	void setLife(bool life) { m_alive = life; }
 	void setWorld(StudentWorld* ptr) { m_param.m_worldPtr = ptr; }
 	void setCollidable(bool flag) { m_param.m_collidable = flag; }
@@ -26,8 +26,8 @@ public:
 	
 		// Functions that get/return
 
-	double getVertSpeed() const { return m_param.m_vertSpeed; }
-	double getHorizSpeed() const { return m_param.m_horizSpeed; }
+	int getVertSpeed() const { return m_param.m_vertSpeed; }
+	int getHorizSpeed() const { return m_param.m_horizSpeed; }
 	bool isCollidable() const { return m_param.m_collidable; }
 	virtual bool isAlive() const { return m_alive; }
 	bool isSpinnable() const { return m_param.m_spinnable; }
@@ -37,8 +37,8 @@ public:
 private:
 	struct additionalParam
 	{
-		double m_vertSpeed;
-		double m_horizSpeed;
+		int m_vertSpeed;
+		int m_horizSpeed;
 		bool m_collidable;
 		bool m_spinnable;
 		bool m_affectedByHW;
@@ -75,9 +75,18 @@ class HumanPedestrian : public Character
 public:
 	HumanPedestrian(double startX, double startY, StudentWorld* wPtr);
 	virtual ~HumanPedestrian() {}
-	
+
 	// Functions that do
+
 	virtual void doSomething();
+	void decrementMovementPlanDist() { m_movementPlanDistance--; }
+	void setMovementPlanDist(int dist) { m_movementPlanDistance = dist; }
+
+	// Functions that get
+
+	int getMovementPlanDistance() { return m_movementPlanDistance; }
+private:
+	int m_movementPlanDistance;
 };
 
 class GhostRacer : public Character

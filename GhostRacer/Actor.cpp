@@ -1,14 +1,25 @@
 #include "Actor.h"
 #include "StudentWorld.h"
 #include "GameConstants.h"
-#include <math.h>
+#include <cmath>
+using namespace std;
 
 #define PI 3.14159265
 
 //	Helper Functions
 bool isInBounds(double x, double y)
 {
-	return x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT;
+	return !(x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT);
+}
+
+bool isOverlapping(Actor* i, Actor* j)
+{
+	double deltaX = abs(i->getX() - j->getX());
+	double deltaY = abs(i->getY() - j->getY());
+	double radSum = i->getRadius() + j->getRadius();
+	if (deltaX < radSum * 0.25 && deltaY < radSum * 0.6)
+		return true;
+	return false;
 }
 
 ///////////////////////////////////////////////
@@ -18,7 +29,7 @@ bool isInBounds(double x, double y)
 ///////////////////////////////////////////////
 
 HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPtr)
-	: Character(IID_HUMAN_PED, startX, startY, 2, 0, 2, 0)
+	: Character(IID_HUMAN_PED, startX, startY, 2, 0, 2, 0), m_movementPlanDistance(0)
 {
 	setVertSpeed(-4);
 	setHorizSpeed(0);
@@ -35,17 +46,41 @@ void HumanPedestrian::doSomething()
 	if (!isAlive())
 		return;
 
-	// overlap with gr
+	// If overlap with ghost racer
+	Actor* grPtr = getWorld()->getGhostRacer();
+	if (isOverlapping(this, grPtr))
+	{
+		grPtr->setLife(false);
+		return;
+	}
 
-	double vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
-	double hSpeed = getHorizSpeed();
+	// Move human pedestrian
+	int vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
+	int hSpeed = getHorizSpeed();
 	double newY = getY() + vSpeed;
 	double newX = getX() + hSpeed;
 	moveTo(newX, newY);
-	if (isInBounds(getX(), getY()))
+	if (!isInBounds(getX(), getY()))
 	{
 		setLife(false);
 		return;
+	}
+
+	// Determine movement plan
+	decrementMovementPlanDist();
+	if (getMovementPlanDistance() > 0)
+		return;
+	else
+	{
+		int newHSpeed = randInt(-3, 3);
+		while (newHSpeed == 0)
+			newHSpeed = randInt(-3, 3);
+		setHorizSpeed(newHSpeed);		// Check speed != 0		!!!
+		setMovementPlanDist(randInt(4, 32));
+		if (getHorizSpeed() < 0)
+			setDirection(180);
+		else if (getHorizSpeed() > 0)
+			setDirection(0);
 	}
 }
 
@@ -61,8 +96,8 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 	m_unitsOfHolyWater = 10;
 	m_soulsSaved = 0;
 	setAffectedByHW(false);
-	setVertSpeed(0.0);
-	setHorizSpeed(0.0);
+	setVertSpeed(0);
+	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollidable(true);
 	setHealable(true);
@@ -121,7 +156,7 @@ void GhostRacer::doSomething()
 
 	// Check for inputs
 	int key;
-	double vSpeed = getVertSpeed();
+	int vSpeed = getVertSpeed();
 	dir = getDirection();
 	if (getWorld()->getKey(key))
 	{
@@ -181,9 +216,9 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 // Contradiction with depth, says 2 and 1 at different parts in spec			!!!
 	: Environmentals(imageID, startX, startY, 0, 2.0)
 {
-	setVertSpeed(-4.0);
+	setVertSpeed(-4);
 	setAffectedByHW(false);
-	setHorizSpeed(0.0);
+	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollidable(false);
 	setHealable(false);
@@ -193,15 +228,15 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 void BorderLine::doSomething()
 {
 	// Calculate speed
-	double vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
-	double hSpeed = getHorizSpeed();
+	int vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
+	int hSpeed = getHorizSpeed();
 
 	// Get new position and update
 	double newY = getY() + vSpeed;
 	double newX = getX() + hSpeed;
 	moveTo(newX, newY);
 
-	if (isInBounds(getX(), getY()))
+	if (!isInBounds(getX(), getY()))
 	{
 		setLife(false);
 		return;

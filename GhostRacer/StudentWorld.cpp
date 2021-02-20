@@ -100,7 +100,7 @@ int StudentWorld::move()
     
     // Add necessary new objects
     int newBorderY = VIEW_HEIGHT - SPRITE_HEIGHT;
-    double lastWLSpeed = -4.0 - m_ghostRacer->getVertSpeed();
+    int lastWLSpeed = -4 - m_ghostRacer->getVertSpeed();
     m_lastBDY = m_lastBDY + lastWLSpeed;
     double deltaY = newBorderY - m_lastBDY;
 
@@ -111,11 +111,11 @@ int StudentWorld::move()
         m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE,
             newBorderY, this));
     }
-    if (deltaY >= 4 * SPRITE_HEIGHT)
+    if (deltaY >= 4.0 * SPRITE_HEIGHT)
     {
-        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, LEFT_EDGE + ROAD_WIDTH / 3,
+        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, LEFT_EDGE + ROAD_WIDTH / 3.0,
             newBorderY, this));
-        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, RIGHT_EDGE - ROAD_WIDTH / 3,
+        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, RIGHT_EDGE - ROAD_WIDTH / 3.0,
             newBorderY, this));
 
         // Save last white border line added
