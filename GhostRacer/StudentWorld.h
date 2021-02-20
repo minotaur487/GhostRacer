@@ -23,7 +23,11 @@ public:
     virtual int move();
     virtual void cleanUp();
 
-    // getter functions
+    // Helper functions
+    void deleteDeadActors();
+    void addNewActors();
+
+    // Get functions
     Actor* getGhostRacer() { return m_ghostRacer; }     // Why did I make the return type Actor?        !!!
 private:
     GhostRacer* m_ghostRacer;

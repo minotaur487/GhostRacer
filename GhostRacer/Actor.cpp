@@ -24,6 +24,24 @@ bool isOverlapping(Actor* i, Actor* j)
 
 ///////////////////////////////////////////////
 //
+//	Actor Class
+//
+///////////////////////////////////////////////
+
+void Actor::doOtherCircumstances()
+{
+	if (isCollidable())
+		doCollision();
+	if (isSpinnable())
+		doSpin();
+	if (isAffectedByHW())
+		doHW();
+	if (isHealable())
+		doHeal();
+}
+
+///////////////////////////////////////////////
+//
 //	Human Pedestrian Class
 //
 ///////////////////////////////////////////////
@@ -43,6 +61,7 @@ HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPt
 
 void HumanPedestrian::doSomething()
 {
+	updateLifeStatus();
 	if (!isAlive())
 		return;
 
@@ -82,6 +101,21 @@ void HumanPedestrian::doSomething()
 		else if (getHorizSpeed() > 0)
 			setDirection(0);
 	}
+
+	//doOtherCircumstances();		//		DETERMINE WHEN THIS OCCURS	!!!
+}
+
+void HumanPedestrian::doHW()
+{
+	if (true)					// FIGURE OUT HOW TO DETERMINE IF THEY OVERLAP	!!!
+	{
+		setHorizSpeed(getHorizSpeed() * -1);
+		if (getHorizSpeed() < 0)				//	Duplicate code with line 98	!!!
+			setDirection(180);
+		else if (getHorizSpeed() > 0)
+			setDirection(0);
+		getWorld()->playSound(SOUND_PED_HURT);
+	}
 }
 
 ///////////////////////////////////////////////
@@ -116,6 +150,7 @@ void GhostRacer::moveGR()
 
 void GhostRacer::doSomething()
 {
+	updateLifeStatus();
 	if (!isAlive())
 		return;
 
@@ -126,6 +161,7 @@ void GhostRacer::doSomething()
 		if (dir > 90)
 		{
 			damageItself(10);
+			updateLifeStatus();
 			if (!isAlive())
 			{
 				setLife(false);
@@ -142,6 +178,7 @@ void GhostRacer::doSomething()
 		if (dir < 90)
 		{
 			damageItself(10);
+			updateLifeStatus();
 			if (!isAlive())
 			{
 				setLife(false);

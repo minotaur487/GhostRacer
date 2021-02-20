@@ -9,8 +9,6 @@ GameWorld* createStudentWorld(string assetPath)
 	return new StudentWorld(assetPath);
 }
 
-// Students:  Add code to this file, StudentWorld.h, Character.h, and Character.cpp
-
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
 {
@@ -83,6 +81,37 @@ int StudentWorld::move()
     }
 
     // Delete dead actors
+    deleteDeadActors();
+    
+    // Add necessary new objects
+    addNewActors();
+
+    // Update status text
+    // !!!  //
+
+    return GWSTATUS_CONTINUE_GAME;
+}
+
+void StudentWorld::cleanUp()
+{
+    delete m_ghostRacer;
+    list<Actor*>::iterator it, temp;
+    for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
+    {
+        if (it == m_actorList.begin())
+            temp++;
+        delete* it;
+        m_actorList.erase(it);
+        it = temp;
+        if (it != m_actorList.begin() && it != temp)
+            temp = it;
+    }
+}
+
+void StudentWorld::deleteDeadActors()
+{
+    // Delete dead actors
+    list<Actor*>::iterator it;
     list<Actor*>::iterator temp;
     for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
     {
@@ -97,8 +126,11 @@ int StudentWorld::move()
         if (it != m_actorList.begin() && it != temp)
             temp = it;
     }
-    
-    // Add necessary new objects
+}
+
+void StudentWorld::addNewActors()
+{
+    // Add border lines
     int newBorderY = VIEW_HEIGHT - SPRITE_HEIGHT;
     int lastWLSpeed = -4 - m_ghostRacer->getVertSpeed();
     m_lastBDY = m_lastBDY + lastWLSpeed;
@@ -123,24 +155,12 @@ int StudentWorld::move()
         m_lastBDY = lastWB->getY();
     }
 
-    // Update status text
-    // !!!  //
-
-    return GWSTATUS_CONTINUE_GAME;
-}
-
-void StudentWorld::cleanUp()
-{
-    delete m_ghostRacer;
-    list<Actor*>::iterator it, temp;
-    for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
+    // Add human pedestrians
+    int chanceHumanPed = max(200 - getLevel() * 10, 30);
+    int rand = randInt(0, chanceHumanPed - 1);
+    if (rand == 0)
     {
-        if (it == m_actorList.begin())
-            temp++;
-        delete* it;
-        m_actorList.erase(it);
-        it = temp;
-        if (it != m_actorList.begin() && it != temp)
-            temp = it;
+        int x = randInt(0, VIEW_WIDTH);
+        m_actorList.push_back(new HumanPedestrian(x, VIEW_HEIGHT, this));
     }
 }

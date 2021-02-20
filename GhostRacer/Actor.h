@@ -23,6 +23,7 @@ public:
 	void setAffectedByHW(bool flag) { m_param.m_affectedByHW = flag; }
 	void setHealable(bool flag) { m_param.m_healable = flag; }
 	void setSpinnable(bool flag) { m_param.m_spinnable = flag; }
+	void doOtherCircumstances();
 	
 		// Functions that get/return
 
@@ -35,6 +36,11 @@ public:
 	bool isAffectedByHW() const { return m_param.m_affectedByHW; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
 private:
+		//	Functions and struct
+	virtual void doSpin() { return; };
+	virtual void doCollision() { return; };		// Not done for GR or BorderLines yet		!!!
+	virtual void doHW() { return; };
+	virtual void doHeal() { return; };
 	struct additionalParam
 	{
 		int m_vertSpeed;
@@ -45,6 +51,8 @@ private:
 		bool m_healable;
 		StudentWorld* m_worldPtr;
 	};
+
+		// Data members
 	bool m_alive;
 	additionalParam m_param;
 };
@@ -60,10 +68,14 @@ public:
 
 	void setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
 	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
+	void updateLifeStatus() {
+		if (getHitPoints() <= 0)
+			setLife(false);	// Maybe declare as inline			!!!
+	}
 
 	// Functions that get/return
 
-	virtual bool isAlive() { return getHitPoints() > 0; }
+	//virtual bool isAlive() { return getHitPoints() > 0 && m_alive; }
 	int getHitPoints() const { return m_hitPoints; }
 
 private:
@@ -86,6 +98,10 @@ public:
 
 	int getMovementPlanDistance() { return m_movementPlanDistance; }
 private:
+		// Functions
+	virtual void doHW();
+
+		// Data members
 	int m_movementPlanDistance;
 };
 
