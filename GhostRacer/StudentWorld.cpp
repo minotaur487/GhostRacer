@@ -90,7 +90,7 @@ int StudentWorld::move()
         {
             if (it == m_actorList.begin())
                 temp++;
-            delete (*it);
+            delete* it;
             m_actorList.erase(it);
             it = temp;
         }
@@ -132,7 +132,15 @@ int StudentWorld::move()
 void StudentWorld::cleanUp()
 {
     delete m_ghostRacer;
-    list<Actor*>::iterator it;
-    for (it = m_actorList.begin(); it != m_actorList.end(); it++)
+    list<Actor*>::iterator it, temp;
+    for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
+    {
+        if (it == m_actorList.begin())
+            temp++;
         delete* it;
+        m_actorList.erase(it);
+        it = temp;
+        if (it != m_actorList.begin() && it != temp)
+            temp = it;
+    }
 }
