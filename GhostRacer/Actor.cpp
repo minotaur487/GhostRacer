@@ -5,6 +5,50 @@
 
 #define PI 3.14159265
 
+//	Helper Functions
+bool isInBounds(double x, double y)
+{
+	return x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT;
+}
+
+///////////////////////////////////////////////
+//
+//	Human Pedestrian Class
+//
+///////////////////////////////////////////////
+
+HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPtr)
+	: Character(IID_HUMAN_PED, startX, startY, 2, 0, 2, 0)
+{
+	setVertSpeed(-4);
+	setHorizSpeed(0);
+	setCollidable(true);
+	setAffectedByHW(true);
+	setSpinnable(false);
+	setHealable(false);
+	setWorld(wPtr);
+	// Movement plan of 0?
+}
+
+void HumanPedestrian::doSomething()
+{
+	if (!isAlive())
+		return;
+
+	// overlap with gr
+
+	double vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
+	double hSpeed = getHorizSpeed();
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
+	if (isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
+	}
+}
+
 ///////////////////////////////////////////////
 //
 //	Ghost Racer Class
@@ -16,6 +60,7 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 {
 	m_unitsOfHolyWater = 10;
 	m_soulsSaved = 0;
+	setAffectedByHW(false);
 	setVertSpeed(0.0);
 	setHorizSpeed(0.0);
 	setWorld(wPtr);
@@ -132,11 +177,12 @@ void GhostRacer::doSomething()
 //
 ///////////////////////////////////////////////
 
-BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr, GhostRacer* grPtr)
+BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr)
 // Contradiction with depth, says 2 and 1 at different parts in spec			!!!
-	: Environmentals(imageID, startX, startY, 0, 2.0, grPtr)
+	: Environmentals(imageID, startX, startY, 0, 2.0)
 {
 	setVertSpeed(-4.0);
+	setAffectedByHW(false);
 	setHorizSpeed(0.0);
 	setWorld(wPtr);
 	setCollidable(false);
@@ -147,7 +193,7 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 void BorderLine::doSomething()
 {
 	// Calculate speed
-	double vSpeed = getVertSpeed() - getGhostRacer()->getVertSpeed();
+	double vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
 	double hSpeed = getHorizSpeed();
 
 	// Get new position and update
@@ -155,7 +201,7 @@ void BorderLine::doSomething()
 	double newX = getX() + hSpeed;
 	moveTo(newX, newY);
 
-	if (getX() < 0 || getY() < 0 || getX() > VIEW_WIDTH || getY() > VIEW_HEIGHT)	// Check to see if out of bounds issues occur and move up if so			!!!
+	if (isInBounds(getX(), getY()))
 	{
 		setLife(false);
 		return;

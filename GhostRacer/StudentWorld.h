@@ -8,8 +8,8 @@
 #include <list>
 using namespace std;
 
-    // Student World Constants                  !!! I don't know if I'm allowed to do this since I can't add to the actual
-const int LEFT_EDGE = ROAD_CENTER - ROAD_WIDTH / 2;       // header file for this
+    // Student World Constants
+const int LEFT_EDGE = ROAD_CENTER - ROAD_WIDTH / 2;
 const int RIGHT_EDGE = ROAD_CENTER + ROAD_WIDTH / 2;
 const int N = VIEW_HEIGHT / SPRITE_HEIGHT;    // N number of yellow border lines on each side
 const int M = VIEW_HEIGHT / (4 * SPRITE_HEIGHT);      // M number of white border lines on each side
@@ -22,7 +22,9 @@ public:
     virtual int init();
     virtual int move();
     virtual void cleanUp();
-                    // SHOULD THERE BE HELPER FUNCTIONS???                  !!!
+
+    // getter functions
+    Actor* getGhostRacer() { return m_ghostRacer; }
 private:
     GhostRacer* m_ghostRacer;
     list<Actor*> m_actorList;

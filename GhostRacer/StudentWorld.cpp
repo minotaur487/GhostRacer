@@ -29,8 +29,8 @@ int StudentWorld::init()
     for (int j = 0; j < N; j++)
     {
         int y = j * SPRITE_HEIGHT;
-        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE, y, this, m_ghostRacer));
-        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE, y, this, m_ghostRacer));
+        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE, y, this));
+        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE, y, this));
     }
 
     // Initialize white border lines
@@ -38,9 +38,9 @@ int StudentWorld::init()
     {
         int y = j * (4 * SPRITE_HEIGHT);
         m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, LEFT_EDGE + ROAD_WIDTH / 3, y, 
-            this, m_ghostRacer));
+            this));
         m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, RIGHT_EDGE - ROAD_WIDTH / 3, y, 
-            this, m_ghostRacer));
+            this));
     }
     // Save last white border line added
     Actor* lastWB = *(--m_actorList.end());
@@ -107,16 +107,16 @@ int StudentWorld::move()
     if (deltaY >= SPRITE_HEIGHT)
     {
         m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE,
-            newBorderY, this, m_ghostRacer));
+            newBorderY, this));
         m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE,
-            newBorderY, this, m_ghostRacer));
+            newBorderY, this));
     }
     if (deltaY >= 4 * SPRITE_HEIGHT)
     {
         m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, LEFT_EDGE + ROAD_WIDTH / 3,
-            newBorderY, this, m_ghostRacer));
+            newBorderY, this));
         m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, RIGHT_EDGE - ROAD_WIDTH / 3,
-            newBorderY, this, m_ghostRacer));
+            newBorderY, this));
 
         // Save last white border line added
         Actor* lastWB = *(--m_actorList.end());

@@ -70,6 +70,16 @@ private:
 	int m_hitPoints;
 };
 
+class HumanPedestrian : public Character
+{
+public:
+	HumanPedestrian(double startX, double startY, StudentWorld* wPtr);
+	virtual ~HumanPedestrian() {}
+	
+	// Functions that do
+	virtual void doSomething();
+};
+
 class GhostRacer : public Character
 {
 public:
@@ -80,6 +90,7 @@ public:
 
 	virtual void doSomething();
 	void moveGR();
+	void setUnitsOfHolyWater(int units) { m_unitsOfHolyWater = units; }
 	void incrementSoulsSaved() { m_soulsSaved++; }
 	void decrementSoulsSaved() { m_soulsSaved--; }
 
@@ -96,32 +107,25 @@ private:
 class Goodies : public Actor
 {
 public:
-	Goodies(int imageID, double startX, double startY, int dir, double size, GhostRacer* grPtr, unsigned int depth = 2)
-		: Actor(imageID, startX, startY, dir, size, depth), m_gRacerPtr(grPtr) {}
+	Goodies(int imageID, double startX, double startY, int dir, double size, unsigned int depth = 2)
+		: Actor(imageID, startX, startY, dir, size, depth) {}
 	virtual ~Goodies() {};
 	//virtual bool isActive() = 0;			// FOR CONSUMABLES I THINK				!!!
-
-	// Functions that get/return
-
-	GhostRacer* getGhostRacer() const { return m_gRacerPtr; }
-
-private:
-	GhostRacer* m_gRacerPtr;
 };
 
 class Environmentals : public Goodies
 {
 public:
-	Environmentals(int imageID, double startX, double startY, int dir, double size, GhostRacer* grPtr)
+	Environmentals(int imageID, double startX, double startY, int dir, double size)
 		// Check if oil slick has depth 2 aka is a goodie								!!!
-		: Goodies(imageID, startX, startY, dir, size, grPtr) {}
+		: Goodies(imageID, startX, startY, dir, size) {}
 	virtual ~Environmentals() {};
 };
 
 class BorderLine : public Environmentals
 {
 public:
-	BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr, GhostRacer* grPtr);
+	BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr);
 	virtual ~BorderLine() {}
 	virtual void doSomething();
 };
