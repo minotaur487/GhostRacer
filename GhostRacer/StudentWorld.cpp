@@ -12,6 +12,7 @@ GameWorld* createStudentWorld(string assetPath)
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
 {
+    m_score = 0;
 }
 
 StudentWorld::~StudentWorld()
@@ -21,6 +22,7 @@ StudentWorld::~StudentWorld()
 
 int StudentWorld::init()
 {
+    m_soulsSaved = 0;
     m_ghostRacer = new GhostRacer(this);
 
     // Initialize yellow border lines
@@ -57,7 +59,7 @@ int StudentWorld::move()
         decLives();
         return GWSTATUS_PLAYER_DIED;
     }
-    else if (m_ghostRacer->getNumOfSoulsSaved() >= getLevel() * 2 + 5)
+    else if (getNumOfSoulsSaved() >= getLevel() * 2 + 5)
     {
         //AWARD BONUS POINTS                                            !!!
         return GWSTATUS_FINISHED_LEVEL;
@@ -72,7 +74,7 @@ int StudentWorld::move()
                 decLives();
                 return GWSTATUS_PLAYER_DIED;
             }
-            else if (m_ghostRacer->getNumOfSoulsSaved() >= getLevel() * 2 + 5)
+            else if (getNumOfSoulsSaved() >= getLevel() * 2 + 5)
             {
                 //AWARD BONUS POINTS                                            !!!
                 return GWSTATUS_FINISHED_LEVEL;
@@ -162,5 +164,14 @@ void StudentWorld::addNewActors()
     {
         int x = randInt(0, VIEW_WIDTH);
         m_actorList.push_back(new HumanPedestrian(x, VIEW_HEIGHT, this));
+    }
+
+    // Add lost souls
+    int chanceLostSoul = 100;
+    rand = randInt(0, chanceLostSoul - 1);
+    if (rand == 0)
+    {
+        int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
+        m_actorList.push_back(new Soul(x, VIEW_HEIGHT, this));
     }
 }

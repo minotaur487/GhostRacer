@@ -27,12 +27,24 @@ public:
     void deleteDeadActors();
     void addNewActors();
 
+    // Functions that do
+
+    void incrementSoulsSaved() { m_soulsSaved++; }
+    void decrementSoulsSaved() { m_soulsSaved--; }
+    void setScore(int score) { m_score = score; }
+
     // Get functions
-    Actor* getGhostRacer() { return m_ghostRacer; }     // Why did I make the return type Actor?        !!!
+
+    Actor* getGhostRacer() const { return m_ghostRacer; }     // Check if this can be ghostRacer        !!!
+    int getNumOfSoulsSaved() const { return m_soulsSaved; }
+    int getScore() const { return m_score; }
+
 private:
-    GhostRacer* m_ghostRacer;
+    Actor* m_ghostRacer;
     list<Actor*> m_actorList;
     double m_lastBDY;
+    int m_soulsSaved;
+    int m_score;
 };
 
 #endif // STUDENTWORLD_H

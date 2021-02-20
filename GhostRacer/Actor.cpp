@@ -6,7 +6,9 @@ using namespace std;
 
 #define PI 3.14159265
 
-//	Helper Functions
+
+	//	Helper Functions
+
 bool isInBounds(double x, double y)
 {
 	return !(x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT);
@@ -21,6 +23,7 @@ bool isOverlapping(Actor* i, Actor* j)
 		return true;
 	return false;
 }
+
 
 ///////////////////////////////////////////////
 //
@@ -39,6 +42,7 @@ void Actor::doOtherCircumstances()
 	if (isHealable())
 		doHeal();
 }
+
 
 ///////////////////////////////////////////////
 //
@@ -118,6 +122,7 @@ void HumanPedestrian::doHW()
 	}
 }
 
+
 ///////////////////////////////////////////////
 //
 //	Ghost Racer Class
@@ -128,7 +133,6 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0)
 {
 	m_unitsOfHolyWater = 10;
-	m_soulsSaved = 0;
 	setAffectedByHW(false);
 	setVertSpeed(0);
 	setHorizSpeed(0);
@@ -277,5 +281,58 @@ void BorderLine::doSomething()
 	{
 		setLife(false);
 		return;
+	}
+}
+
+
+///////////////////////////////////////////////
+//
+//	Soul Class
+//
+///////////////////////////////////////////////
+
+Soul::Soul(double startX, double startY, StudentWorld* wPtr)
+	: Consumables(IID_SOUL_GOODIE, startX, startY, 0, 4.0)
+{
+	setVertSpeed(-4);
+	setHorizSpeed(0);
+	setWorld(wPtr);
+	setCollidable(false);
+	setAffectedByHW(false);
+	setHealable(false);
+	setSpinnable(false);
+}
+
+void Soul::doSomething()
+{
+	Actor* grPtr = getWorld()->getGhostRacer();
+	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
+	int hSpeed = getHorizSpeed();
+
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
+
+	if (!isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
+	}
+
+	if (isOverlapping(this, grPtr))
+	{
+		getWorld()->incrementSoulsSaved();
+		setLife(false);
+		getWorld()->playSound(SOUND_GOT_SOUL);
+		getWorld()->setScore(getWorld()->getScore() + 100);
+	}
+
+	if (getDirection() >= 10)
+		setDirection(getDirection() - 10);
+	else
+	{
+		// 360 + dir - 10
+		int angle = 350 + getDirection();
+		setDirection(angle);
 	}
 }

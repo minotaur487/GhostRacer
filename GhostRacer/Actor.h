@@ -96,7 +96,7 @@ public:
 
 	// Functions that get
 
-	int getMovementPlanDistance() { return m_movementPlanDistance; }
+	int getMovementPlanDistance() const { return m_movementPlanDistance; }
 private:
 		// Functions
 	virtual void doHW();
@@ -116,16 +116,12 @@ public:
 	virtual void doSomething();
 	void moveGR();
 	void setUnitsOfHolyWater(int units) { m_unitsOfHolyWater = units; }
-	void incrementSoulsSaved() { m_soulsSaved++; }
-	void decrementSoulsSaved() { m_soulsSaved--; }
 
 	// Functions that get/return
 
 	int getUnitsOfHolyWater() const { return m_unitsOfHolyWater; }
-	int getNumOfSoulsSaved() const { return m_soulsSaved; }
 
 private:
-	int m_soulsSaved;
 	int m_unitsOfHolyWater;
 };
 
@@ -134,8 +130,24 @@ class Goodies : public Actor
 public:
 	Goodies(int imageID, double startX, double startY, int dir, double size, unsigned int depth = 2)
 		: Actor(imageID, startX, startY, dir, size, depth) {}
-	virtual ~Goodies() {};
+	virtual ~Goodies() {}
 	//virtual bool isActive() = 0;			// FOR CONSUMABLES I THINK				!!!
+};
+
+class Consumables : public Goodies
+{
+public:
+	Consumables(int imageID, double startX, double startY, int dir, double size)
+		: Goodies(imageID, startX, startY, dir, size) {}
+	virtual ~Consumables() {}
+};
+
+class Soul : public Consumables
+{
+public:
+	Soul(double startX, double startY, StudentWorld* wPtr);
+	virtual ~Soul() {}
+	virtual void doSomething();
 };
 
 class Environmentals : public Goodies
@@ -144,7 +156,7 @@ public:
 	Environmentals(int imageID, double startX, double startY, int dir, double size)
 		// Check if oil slick has depth 2 aka is a goodie								!!!
 		: Goodies(imageID, startX, startY, dir, size) {}
-	virtual ~Environmentals() {};
+	virtual ~Environmentals() {}
 };
 
 class BorderLine : public Environmentals
