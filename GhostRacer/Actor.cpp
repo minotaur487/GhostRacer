@@ -168,7 +168,6 @@ void GhostRacer::doSomething()
 			updateLifeStatus();
 			if (!isAlive())
 			{
-				setLife(false);
 				getWorld()->playSound(SOUND_PLAYER_DIE);			// NOT SURE IF I SHOULD RETURN HERE...SAME FOR RIGHT_EDGE
 			}
 		}
@@ -185,7 +184,6 @@ void GhostRacer::doSomething()
 			updateLifeStatus();
 			if (!isAlive())
 			{
-				setLife(false);
 				getWorld()->playSound(SOUND_PLAYER_DIE);
 			}
 		}
@@ -221,7 +219,8 @@ void GhostRacer::doSomething()
 			{
 				moveGR();
 				break;
-			}			setDirection(dir - 8);
+			}			
+			setDirection(dir - 8);
 			moveGR();
 			break;
 		case KEY_PRESS_UP:
@@ -229,7 +228,8 @@ void GhostRacer::doSomething()
 			{
 				moveGR();
 				break;
-			}			setVertSpeed(vSpeed + 1);
+			}			
+			setVertSpeed(vSpeed + 1);
 			moveGR();
 			break;
 		case KEY_PRESS_DOWN:
@@ -237,7 +237,8 @@ void GhostRacer::doSomething()
 			{
 				moveGR();
 				break;
-			}			setVertSpeed(vSpeed - 1);
+			}			
+			setVertSpeed(vSpeed - 1);
 			moveGR();
 			break;
 		}
