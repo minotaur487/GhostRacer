@@ -12,7 +12,6 @@ GameWorld* createStudentWorld(string assetPath)
 StudentWorld::StudentWorld(string assetPath)
 : GameWorld(assetPath)
 {
-    m_score = 0;
 }
 
 StudentWorld::~StudentWorld()
@@ -173,5 +172,15 @@ void StudentWorld::addNewActors()
     {
         int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
         m_actorList.push_back(new Soul(x, VIEW_HEIGHT, this));
+    }
+
+    // Add oil slicks
+    int chanceOilSlick = max(150 - getLevel() * 10, 40);
+    rand = randInt(0, chanceOilSlick - 1);
+    if (rand == 0)
+    {
+        int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
+        int randSize = randInt(2, 5);
+        m_actorList.push_back(new OilSlick(x, VIEW_HEIGHT, randSize, this));
     }
 }

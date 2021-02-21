@@ -167,4 +167,12 @@ public:
 	virtual void doSomething();
 };
 
+class OilSlick : public Environmentals
+{
+public:
+	OilSlick(double startX, double startY, double size, StudentWorld* wPtr);
+	virtual ~OilSlick() {}
+	virtual void doSomething();
+};
+
 #endif // Character_H_

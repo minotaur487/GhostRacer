@@ -31,20 +31,17 @@ public:
 
     void incrementSoulsSaved() { m_soulsSaved++; }
     void decrementSoulsSaved() { m_soulsSaved--; }
-    void setScore(int score) { m_score = score; }
 
     // Get functions
 
     Actor* getGhostRacer() const { return m_ghostRacer; }     // Check if this can be ghostRacer        !!!
     int getNumOfSoulsSaved() const { return m_soulsSaved; }
-    int getScore() const { return m_score; }
 
 private:
     Actor* m_ghostRacer;
     list<Actor*> m_actorList;
     double m_lastBDY;
     int m_soulsSaved;
-    int m_score;
 };
 
 #endif // STUDENTWORLD_H

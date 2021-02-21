@@ -24,6 +24,18 @@ bool isOverlapping(Actor* i, Actor* j)
 	return false;
 }
 
+void spinClockwise(int delTheta, Actor* self)
+{
+	if (self->getDirection() >= delTheta)
+		self->setDirection(self->getDirection() - delTheta);
+	else
+	{
+		// 360 + dir - delTheta
+		int angle = 360 + self->getDirection() - delTheta;
+		self->setDirection(angle);
+	}
+}
+
 
 ///////////////////////////////////////////////
 //
@@ -250,6 +262,61 @@ void GhostRacer::doSomething()
 
 ///////////////////////////////////////////////
 //
+//	Oil Slick Class
+//
+///////////////////////////////////////////////
+
+OilSlick::OilSlick(double startX, double startY, double size, StudentWorld* wPtr)
+	: Environmentals(IID_OIL_SLICK, startX, startY, 0, size)
+{
+	setWorld(wPtr);
+	setHorizSpeed(0);
+	setVertSpeed(-4);
+	setCollidable(false);
+	setAffectedByHW(false);
+	setSpinnable(false);
+	setHealable(false);
+}
+
+void OilSlick::doSomething()
+{
+	Actor* grPtr = getWorld()->getGhostRacer();
+	// Move oil slick
+	int vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();		// These movement shills r similar	!!!
+	int hSpeed = getHorizSpeed();
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
+
+	// Check if out of bounds
+	if (!isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
+	}
+
+	// Spin if overlap with ghost racer
+	if (isOverlapping(this, grPtr))
+	{
+		getWorld()->playSound(SOUND_OIL_SLICK);
+		// Going to spin ghost racer here					TEST I actually can't tell by visuals if it works properly		!!!
+		int rand = randInt(5, 20);
+		int grDir = grPtr->getDirection();
+		int prospectiveClockwise = grDir - rand;
+		int prospectiveCC = grDir + rand;
+		if (prospectiveCC <= 120)	// If grDir can adjust CC, go CC
+		{
+			grPtr->setDirection(prospectiveCC);
+		}
+		else if (prospectiveClockwise >= 60)	// Else if grDir can adjust C, go C
+		{
+			grPtr->setDirection(prospectiveClockwise);
+		}
+	}
+}
+
+///////////////////////////////////////////////
+//
 //	BorderLine Class
 //
 ///////////////////////////////////////////////
@@ -269,8 +336,9 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 
 void BorderLine::doSomething()
 {
+	Actor* grPtr = getWorld()->getGhostRacer();
 	// Calculate speed
-	int vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
+	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	int hSpeed = getHorizSpeed();
 
 	// Get new position and update
@@ -278,7 +346,7 @@ void BorderLine::doSomething()
 	double newX = getX() + hSpeed;
 	moveTo(newX, newY);
 
-	if (!isInBounds(getX(), getY()))
+	if (!isInBounds(getX(), getY()))		// Also Similar			!!!
 	{
 		setLife(false);
 		return;
@@ -325,15 +393,8 @@ void Soul::doSomething()
 		getWorld()->incrementSoulsSaved();
 		setLife(false);
 		getWorld()->playSound(SOUND_GOT_SOUL);
-		getWorld()->setScore(getWorld()->getScore() + 100);
+		getWorld()->increaseScore(100);
 	}
 
-	if (getDirection() >= 10)
-		setDirection(getDirection() - 10);
-	else
-	{
-		// 360 + dir - 10
-		int angle = 350 + getDirection();
-		setDirection(angle);
-	}
+	spinClockwise(10, this);
 }
