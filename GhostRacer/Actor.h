@@ -9,31 +9,34 @@ class Actor : public GraphObject
 {
 public:
 	Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
-		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {}
+		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {
+		setActivatedBool(false);
+	}
 	virtual ~Actor() {}
 
 		// Functions that do
 
 	virtual void doSomething() = 0;
+	virtual void applyImpact() { return; };	// FIND BETTER WAY			!!!
 	void setVertSpeed(int speed) { m_param.m_vertSpeed = speed; }
 	void setHorizSpeed(int speed) { m_param.m_horizSpeed = speed; }
 	void setLife(bool life) { m_alive = life; }
 	void setWorld(StudentWorld* ptr) { m_param.m_worldPtr = ptr; }
-	void setCollidable(bool flag) { m_param.m_collidable = flag; }
+	void setCollisionWorthy(bool flag) { m_param.m_collisionWorthy = flag; }
+	void setActivatedBool(bool flag) { m_param.m_canBeActivated = flag; }
 	void setAffectedByHW(bool flag) { m_param.m_affectedByHW = flag; }
 	void setHealable(bool flag) { m_param.m_healable = flag; }
-	void setSpinnable(bool flag) { m_param.m_spinnable = flag; }
 	void doOtherCircumstances();
 	
 		// Functions that get/return
 
 	int getVertSpeed() const { return m_param.m_vertSpeed; }
 	int getHorizSpeed() const { return m_param.m_horizSpeed; }
-	bool isCollidable() const { return m_param.m_collidable; }
+	bool isCollisionWorthy() const { return m_param.m_collisionWorthy; }
 	virtual bool isAlive() const { return m_alive; }
-	bool isSpinnable() const { return m_param.m_spinnable; }
 	bool isHealable() const { return m_param.m_healable; }
 	bool isAffectedByHW() const { return m_param.m_affectedByHW; }
+	bool canBeActivated() const { return m_param.m_canBeActivated; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
 private:
 		//	Functions and struct
@@ -43,10 +46,10 @@ private:
 	virtual void doHeal() { return; };
 	struct additionalParam
 	{
+		bool m_canBeActivated;
 		int m_vertSpeed;
 		int m_horizSpeed;
-		bool m_collidable;
-		bool m_spinnable;
+		bool m_collisionWorthy;
 		bool m_affectedByHW;
 		bool m_healable;
 		StudentWorld* m_worldPtr;
@@ -55,6 +58,24 @@ private:
 		// Data members
 	bool m_alive;
 	additionalParam m_param;
+};
+
+class HolyWaterProjectile : public Actor
+{
+public:
+	HolyWaterProjectile(double startX, double startY, int dir);
+	~HolyWaterProjectile() {}
+
+	// Functions that do
+
+	virtual void doSomething();
+	void addTravelDist(int dist) { m_travelDist += dist; }
+
+	// Functions that get/return
+
+	int getDistTravelled() { return m_travelDist; }
+private:
+	int m_travelDist;
 };
 
 class Character : public Actor
@@ -68,6 +89,7 @@ public:
 
 	void setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
 	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
+	void applyImpact() { damageItself(1); }
 	void updateLifeStatus() {
 		if (getHitPoints() <= 0)
 			setLife(false);	// Maybe declare as inline			!!!
@@ -115,14 +137,11 @@ public:
 
 	virtual void doSomething();
 	void moveGR();
-	void setUnitsOfHolyWater(int units) { m_unitsOfHolyWater = units; }
 
 	// Functions that get/return
 
-	int getUnitsOfHolyWater() const { return m_unitsOfHolyWater; }
 
 private:
-	int m_unitsOfHolyWater;
 };
 
 class Goodies : public Actor
@@ -174,5 +193,16 @@ public:
 	virtual ~OilSlick() {}
 	virtual void doSomething();
 };
+
+inline
+bool isOverlapping(Actor* i, Actor* j)
+{
+	double deltaX = abs(i->getX() - j->getX());
+	double deltaY = abs(i->getY() - j->getY());
+	double radSum = i->getRadius() + j->getRadius();
+	if (deltaX < radSum * 0.25 && deltaY < radSum * 0.6)
+		return true;
+	return false;
+}
 
 #endif // Character_H_

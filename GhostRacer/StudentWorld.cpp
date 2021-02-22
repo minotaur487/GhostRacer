@@ -1,5 +1,6 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
+#include "Actor.h"  // For isOverlapping, considering changing cuz this would take the whole file
 #include <string>
 #include <list>
 using namespace std;
@@ -22,6 +23,7 @@ StudentWorld::~StudentWorld()
 int StudentWorld::init()
 {
     m_soulsSaved = 0;
+    m_unitsOfHolyWater = 10;
     m_ghostRacer = new GhostRacer(this);
 
     // Initialize yellow border lines
@@ -183,4 +185,23 @@ void StudentWorld::addNewActors()
         int randSize = randInt(2, 5);
         m_actorList.push_back(new OilSlick(x, VIEW_HEIGHT, randSize, this));
     }
+}
+
+bool StudentWorld::executeProjectileImpact(Actor* projectile)
+{
+    list<Actor*>::iterator it;
+    for (it = m_actorList.begin(); it != m_actorList.end(); it++)
+    {
+        // Compare addresses, continue if the same
+        if (*it == projectile)
+            continue;
+        // Find overlapping actor that can be activated
+        if (isOverlapping(projectile, *it) && (*it)->canBeActivated())
+        {
+            (*it)->applyImpact();
+            projectile->setLife(false);
+            return true;
+        }
+    }
+    return false;
 }

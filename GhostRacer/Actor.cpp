@@ -14,16 +14,6 @@ bool isInBounds(double x, double y)
 	return !(x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT);
 }
 
-bool isOverlapping(Actor* i, Actor* j)
-{
-	double deltaX = abs(i->getX() - j->getX());
-	double deltaY = abs(i->getY() - j->getY());
-	double radSum = i->getRadius() + j->getRadius();
-	if (deltaX < radSum * 0.25 && deltaY < radSum * 0.6)
-		return true;
-	return false;
-}
-
 void spinClockwise(int delTheta, Actor* self)
 {
 	if (self->getDirection() >= delTheta)
@@ -39,16 +29,53 @@ void spinClockwise(int delTheta, Actor* self)
 
 ///////////////////////////////////////////////
 //
+//	Holy Water Projectile Class
+//
+///////////////////////////////////////////////
+
+HolyWaterProjectile::HolyWaterProjectile(double startX, double startY, int dir)
+	: Actor(IID_HOLY_WATER_PROJECTILE, startX, startY, dir, 1.0, 1)
+{
+	setCollisionWorthy(false);
+	m_travelDist = 0;
+}
+
+void HolyWaterProjectile::doSomething()
+{
+	if (!isAlive())
+		return;
+
+	if (getWorld()->executeProjectileImpact(this))
+		return;
+	else
+	{
+		moveForward(SPRITE_HEIGHT);
+		addTravelDist(SPRITE_HEIGHT);
+	}
+
+	if (!isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
+	}
+
+	if (getDistTravelled() == 160)
+	{
+		setLife(false);
+	}
+}
+
+
+///////////////////////////////////////////////
+//
 //	Actor Class
 //
 ///////////////////////////////////////////////
 
 void Actor::doOtherCircumstances()
 {
-	if (isCollidable())
+	if (isCollisionWorthy())
 		doCollision();
-	if (isSpinnable())
-		doSpin();
 	if (isAffectedByHW())
 		doHW();
 	if (isHealable())
@@ -67,9 +94,8 @@ HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPt
 {
 	setVertSpeed(-4);
 	setHorizSpeed(0);
-	setCollidable(true);
+	setCollisionWorthy(true);
 	setAffectedByHW(true);
-	setSpinnable(false);
 	setHealable(false);
 	setWorld(wPtr);
 	// Movement plan of 0?
@@ -144,21 +170,19 @@ void HumanPedestrian::doHW()
 GhostRacer::GhostRacer(StudentWorld* wPtr)
 	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0)
 {
-	m_unitsOfHolyWater = 10;
 	setAffectedByHW(false);
 	setVertSpeed(0);
 	setHorizSpeed(0);
 	setWorld(wPtr);
-	setCollidable(true);
-	setHealable(true);
-	setSpinnable(true);	// Check healable and spinnable				!!!
+	setCollisionWorthy(true);
+	setHealable(true);	// Check healable and spinnable				!!!
 }
 
 void GhostRacer::moveGR()
 {
 	double maxShiftPerTick = 4.0;
-	int dir = getDirection();			// Some stuff in algo seems superfluous				!!!
-	double delX = cos(dir * PI / 180.0) * maxShiftPerTick;
+	double dir = getDirection() * PI / 180.0;			// Some stuff in algo seems superfluous				!!!
+	double delX = cos(dir) * maxShiftPerTick;
 	double curX = getX();
 	double curY = getY();
 	moveTo(curX + delX, curY);
@@ -214,9 +238,20 @@ void GhostRacer::doSomething()
 		switch (key)
 		{
 		case KEY_PRESS_SPACE:
-			if (getUnitsOfHolyWater() < 1)		//		NEEDS TO BE IMPLEMENTED		!!!
+		{
+			if (getWorld()->getUnitsOfHolyWater() < 1)		//		NEEDS TO BE IMPLEMENTED		!!!
 				break;
+			// Add new holy water projectile
+			double angleRad = (90 - dir) * PI / 180.0;
+			double newX = SPRITE_HEIGHT * sin(angleRad) + getX();
+			double newY = SPRITE_HEIGHT * cos(angleRad) + getY();
+			getWorld()->addActor(new HolyWaterProjectile(newX, newY, getDirection()));
+
+			getWorld()->playSound(SOUND_PLAYER_SPRAY);
+			getWorld()->decrementUnitsOfHolyWater();
+			moveGR();
 			break;
+		}
 		case KEY_PRESS_LEFT:
 			if (dir >= 114)
 			{
@@ -272,9 +307,8 @@ OilSlick::OilSlick(double startX, double startY, double size, StudentWorld* wPtr
 	setWorld(wPtr);
 	setHorizSpeed(0);
 	setVertSpeed(-4);
-	setCollidable(false);
+	setCollisionWorthy(false);
 	setAffectedByHW(false);
-	setSpinnable(false);
 	setHealable(false);
 }
 
@@ -329,9 +363,8 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 	setAffectedByHW(false);
 	setHorizSpeed(0);
 	setWorld(wPtr);
-	setCollidable(false);
-	setHealable(false);
-	setSpinnable(false);	// Check healable and spinnable				!!!
+	setCollisionWorthy(false);
+	setHealable(false);	// Check healable and spinnable				!!!
 } // CHECK DEPTH
 
 void BorderLine::doSomething()
@@ -366,10 +399,9 @@ Soul::Soul(double startX, double startY, StudentWorld* wPtr)
 	setVertSpeed(-4);
 	setHorizSpeed(0);
 	setWorld(wPtr);
-	setCollidable(false);
+	setCollisionWorthy(false);
 	setAffectedByHW(false);
 	setHealable(false);
-	setSpinnable(false);
 }
 
 void Soul::doSomething()
