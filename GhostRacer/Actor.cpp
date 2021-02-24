@@ -33,10 +33,11 @@ void spinClockwise(int delTheta, Actor* self)
 //
 ///////////////////////////////////////////////
 
-HolyWaterProjectile::HolyWaterProjectile(double startX, double startY, int dir)
+HolyWaterProjectile::HolyWaterProjectile(double startX, double startY, int dir, StudentWorld* wPtr)
 	: Actor(IID_HOLY_WATER_PROJECTILE, startX, startY, dir, 1.0, 1)
 {
 	setCollisionWorthy(false);
+	setWorld(wPtr);
 	m_travelDist = 0;
 }
 
@@ -72,16 +73,6 @@ void HolyWaterProjectile::doSomething()
 //
 ///////////////////////////////////////////////
 
-void Actor::doOtherCircumstances()
-{
-	if (isCollisionWorthy())
-		doCollision();
-	if (isAffectedByHW())
-		doHW();
-	if (isHealable())
-		doHeal();
-}
-
 
 ///////////////////////////////////////////////
 //
@@ -90,13 +81,11 @@ void Actor::doOtherCircumstances()
 ///////////////////////////////////////////////
 
 HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPtr)
-	: Character(IID_HUMAN_PED, startX, startY, 2, 0, 2, 0), m_movementPlanDistance(0)
+	: Pedestrian(IID_HUMAN_PED, startX, startY, 2)
 {
 	setVertSpeed(-4);
 	setHorizSpeed(0);
 	setCollisionWorthy(true);
-	setAffectedByHW(true);
-	setHealable(false);
 	setWorld(wPtr);
 	// Movement plan of 0?
 }
@@ -108,15 +97,16 @@ void HumanPedestrian::doSomething()
 		return;
 
 	// If overlap with ghost racer
-	Actor* grPtr = getWorld()->getGhostRacer();
-	if (isOverlapping(this, grPtr))
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+	if (wPtr->isOverlapping(this, grPtr))
 	{
 		grPtr->setLife(false);
 		return;
 	}
 
 	// Move human pedestrian
-	int vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();
+	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	int hSpeed = getHorizSpeed();
 	double newY = getY() + vSpeed;
 	double newX = getX() + hSpeed;
@@ -170,12 +160,11 @@ void HumanPedestrian::doHW()
 GhostRacer::GhostRacer(StudentWorld* wPtr)
 	: Character(IID_GHOST_RACER, 128, 32, 100, 90, 4.0)
 {
-	setAffectedByHW(false);
+	m_unitsOfHolyWater = 10;
 	setVertSpeed(0);
 	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollisionWorthy(true);
-	setHealable(true);	// Check healable and spinnable				!!!
 }
 
 void GhostRacer::moveGR()
@@ -194,6 +183,7 @@ void GhostRacer::doSomething()
 	if (!isAlive())
 		return;
 
+	StudentWorld* wPtr = getWorld();
 	// Check for swerving into boundary
 	int dir = getDirection();
 	if (getX() <= LEFT_EDGE)
@@ -204,11 +194,11 @@ void GhostRacer::doSomething()
 			updateLifeStatus();
 			if (!isAlive())
 			{
-				getWorld()->playSound(SOUND_PLAYER_DIE);			// NOT SURE IF I SHOULD RETURN HERE...SAME FOR RIGHT_EDGE
+				wPtr->playSound(SOUND_PLAYER_DIE);			// NOT SURE IF I SHOULD RETURN HERE...SAME FOR RIGHT_EDGE
 			}
 		}
 		setDirection(82);
-		getWorld()->playSound(SOUND_VEHICLE_CRASH);
+		wPtr->playSound(SOUND_VEHICLE_CRASH);
 		moveGR();
 		return;
 	}
@@ -220,11 +210,11 @@ void GhostRacer::doSomething()
 			updateLifeStatus();
 			if (!isAlive())
 			{
-				getWorld()->playSound(SOUND_PLAYER_DIE);
+				wPtr->playSound(SOUND_PLAYER_DIE);
 			}
 		}
 		setDirection(98);
-		getWorld()->playSound(SOUND_VEHICLE_CRASH);
+		wPtr->playSound(SOUND_VEHICLE_CRASH);
 		moveGR();
 		return;
 	}
@@ -233,22 +223,25 @@ void GhostRacer::doSomething()
 	int key;
 	int vSpeed = getVertSpeed();
 	dir = getDirection();
-	if (getWorld()->getKey(key))
+	if (wPtr->getKey(key))
 	{
 		switch (key)
 		{
 		case KEY_PRESS_SPACE:
 		{
-			if (getWorld()->getUnitsOfHolyWater() < 1)		//		NEEDS TO BE IMPLEMENTED		!!!
+			if (getUnitsOfHolyWater() < 1)
+			{
+				moveGR();
 				break;
+			}
 			// Add new holy water projectile
 			double angleRad = (90 - dir) * PI / 180.0;
 			double newX = SPRITE_HEIGHT * sin(angleRad) + getX();
 			double newY = SPRITE_HEIGHT * cos(angleRad) + getY();
-			getWorld()->addActor(new HolyWaterProjectile(newX, newY, getDirection()));
+			wPtr->addActor(new HolyWaterProjectile(newX, newY, getDirection(), wPtr));
 
-			getWorld()->playSound(SOUND_PLAYER_SPRAY);
-			getWorld()->decrementUnitsOfHolyWater();
+			wPtr->playSound(SOUND_PLAYER_SPRAY);
+			decrementUnitsOfHolyWater();
 			moveGR();
 			break;
 		}
@@ -308,15 +301,14 @@ OilSlick::OilSlick(double startX, double startY, double size, StudentWorld* wPtr
 	setHorizSpeed(0);
 	setVertSpeed(-4);
 	setCollisionWorthy(false);
-	setAffectedByHW(false);
-	setHealable(false);
 }
 
 void OilSlick::doSomething()
 {
-	Actor* grPtr = getWorld()->getGhostRacer();
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
 	// Move oil slick
-	int vSpeed = getVertSpeed() - getWorld()->getGhostRacer()->getVertSpeed();		// These movement shills r similar	!!!
+	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();		// These movement shills r similar	!!!
 	int hSpeed = getHorizSpeed();
 	double newY = getY() + vSpeed;
 	double newX = getX() + hSpeed;
@@ -330,9 +322,9 @@ void OilSlick::doSomething()
 	}
 
 	// Spin if overlap with ghost racer
-	if (isOverlapping(this, grPtr))
+	if (wPtr->isOverlapping(this, grPtr))
 	{
-		getWorld()->playSound(SOUND_OIL_SLICK);
+		wPtr->playSound(SOUND_OIL_SLICK);
 		// Going to spin ghost racer here					TEST I actually can't tell by visuals if it works properly		!!!
 		int rand = randInt(5, 20);
 		int grDir = grPtr->getDirection();
@@ -360,16 +352,14 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 	: Environmentals(imageID, startX, startY, 0, 2.0)
 {
 	setVertSpeed(-4);
-	setAffectedByHW(false);
 	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollisionWorthy(false);
-	setHealable(false);	// Check healable and spinnable				!!!
 } // CHECK DEPTH
 
 void BorderLine::doSomething()
 {
-	Actor* grPtr = getWorld()->getGhostRacer();
+	GhostRacer* grPtr = getWorld()->getGhostRacer();
 	// Calculate speed
 	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	int hSpeed = getHorizSpeed();
@@ -400,13 +390,12 @@ Soul::Soul(double startX, double startY, StudentWorld* wPtr)
 	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollisionWorthy(false);
-	setAffectedByHW(false);
-	setHealable(false);
 }
 
 void Soul::doSomething()
 {
-	Actor* grPtr = getWorld()->getGhostRacer();
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
 	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	int hSpeed = getHorizSpeed();
 
@@ -420,12 +409,12 @@ void Soul::doSomething()
 		return;
 	}
 
-	if (isOverlapping(this, grPtr))
+	if (wPtr->isOverlapping(this, grPtr))
 	{
-		getWorld()->incrementSoulsSaved();
+		wPtr->incrementSoulsSaved();
 		setLife(false);
-		getWorld()->playSound(SOUND_GOT_SOUL);
-		getWorld()->increaseScore(100);
+		wPtr->playSound(SOUND_GOT_SOUL);
+		wPtr->increaseScore(100);
 	}
 
 	spinClockwise(10, this);

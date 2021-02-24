@@ -24,9 +24,6 @@ public:
 	void setWorld(StudentWorld* ptr) { m_param.m_worldPtr = ptr; }
 	void setCollisionWorthy(bool flag) { m_param.m_collisionWorthy = flag; }
 	void setActivatedBool(bool flag) { m_param.m_canBeActivated = flag; }
-	void setAffectedByHW(bool flag) { m_param.m_affectedByHW = flag; }
-	void setHealable(bool flag) { m_param.m_healable = flag; }
-	void doOtherCircumstances();
 	
 		// Functions that get/return
 
@@ -34,24 +31,16 @@ public:
 	int getHorizSpeed() const { return m_param.m_horizSpeed; }
 	bool isCollisionWorthy() const { return m_param.m_collisionWorthy; }
 	virtual bool isAlive() const { return m_alive; }
-	bool isHealable() const { return m_param.m_healable; }
-	bool isAffectedByHW() const { return m_param.m_affectedByHW; }
 	bool canBeActivated() const { return m_param.m_canBeActivated; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
 private:
-		//	Functions and struct
-	virtual void doSpin() { return; };
-	virtual void doCollision() { return; };		// Not done for GR or BorderLines yet		!!!
-	virtual void doHW() { return; };
-	virtual void doHeal() { return; };
+		//	struct
 	struct additionalParam
 	{
 		bool m_canBeActivated;
 		int m_vertSpeed;
 		int m_horizSpeed;
 		bool m_collisionWorthy;
-		bool m_affectedByHW;
-		bool m_healable;
 		StudentWorld* m_worldPtr;
 	};
 
@@ -63,7 +52,7 @@ private:
 class HolyWaterProjectile : public Actor
 {
 public:
-	HolyWaterProjectile(double startX, double startY, int dir);
+	HolyWaterProjectile(double startX, double startY, int dir, StudentWorld* wPtr);
 	~HolyWaterProjectile() {}
 
 	// Functions that do
@@ -104,7 +93,27 @@ private:
 	int m_hitPoints;
 };
 
-class HumanPedestrian : public Character
+class Pedestrian : public Character
+{
+public:
+	Pedestrian(int imageID, double startX, double startY, int hitPoints)
+		: Character(imageID, startX, startY, 2, 0, 2, 0), m_movementPlanDistance(0) {}
+	virtual ~Pedestrian() {}
+
+	// Functions that do
+
+	void decrementMovementPlanDist() { m_movementPlanDistance--; }
+	void setMovementPlanDist(int dist) { m_movementPlanDistance = dist; }
+
+	// Functions that get
+
+	int getMovementPlanDistance() const { return m_movementPlanDistance; }
+private:
+	// Data members
+	int m_movementPlanDistance;
+};
+
+class HumanPedestrian : public Pedestrian
 {
 public:
 	HumanPedestrian(double startX, double startY, StudentWorld* wPtr);
@@ -113,17 +122,12 @@ public:
 	// Functions that do
 
 	virtual void doSomething();
-	void decrementMovementPlanDist() { m_movementPlanDistance--; }
-	void setMovementPlanDist(int dist) { m_movementPlanDistance = dist; }
 
-	// Functions that get
-
-	int getMovementPlanDistance() const { return m_movementPlanDistance; }
 private:
-		// Functions
-	virtual void doHW();
+	// Functions
+	void doHW();
 
-		// Data members
+	// Data members
 	int m_movementPlanDistance;
 };
 
@@ -137,11 +141,14 @@ public:
 
 	virtual void doSomething();
 	void moveGR();
+	void addUnitsOfHolyWater(int units) { m_unitsOfHolyWater += units; }
+	void decrementUnitsOfHolyWater() { m_unitsOfHolyWater--; }
 
 	// Functions that get/return
-
+	int getUnitsOfHolyWater() const { return m_unitsOfHolyWater; }
 
 private:
+	int m_unitsOfHolyWater;
 };
 
 class Goodies : public Actor
@@ -193,16 +200,5 @@ public:
 	virtual ~OilSlick() {}
 	virtual void doSomething();
 };
-
-inline
-bool isOverlapping(Actor* i, Actor* j)
-{
-	double deltaX = abs(i->getX() - j->getX());
-	double deltaY = abs(i->getY() - j->getY());
-	double radSum = i->getRadius() + j->getRadius();
-	if (deltaX < radSum * 0.25 && deltaY < radSum * 0.6)
-		return true;
-	return false;
-}
 
 #endif // Character_H_

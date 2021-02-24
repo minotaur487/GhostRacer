@@ -23,7 +23,6 @@ StudentWorld::~StudentWorld()
 int StudentWorld::init()
 {
     m_soulsSaved = 0;
-    m_unitsOfHolyWater = 10;
     m_ghostRacer = new GhostRacer(this);
 
     // Initialize yellow border lines
@@ -98,16 +97,11 @@ int StudentWorld::move()
 void StudentWorld::cleanUp()
 {
     delete m_ghostRacer;
-    list<Actor*>::iterator it, temp;
-    for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
+    list<Actor*>::iterator it;
+    for (it = m_actorList.begin(); it != m_actorList.end();)
     {
-        if (it == m_actorList.begin())
-            temp++;
         delete* it;
-        m_actorList.erase(it);
-        it = temp;
-        if (it != m_actorList.begin() && it != temp)
-            temp = it;
+        it = m_actorList.erase(it);
     }
 }
 
@@ -115,19 +109,14 @@ void StudentWorld::deleteDeadActors()
 {
     // Delete dead actors
     list<Actor*>::iterator it;
-    list<Actor*>::iterator temp;
-    for (it = temp = m_actorList.begin(); it != m_actorList.end(); it++)
+    for (it = m_actorList.begin(); it != m_actorList.end();)
     {
         if (!(*it)->isAlive())
         {
-            if (it == m_actorList.begin())
-                temp++;
             delete* it;
-            m_actorList.erase(it);
-            it = temp;
+            it = m_actorList.erase(it);
         }
-        if (it != m_actorList.begin() && it != temp)
-            temp = it;
+        it++;
     }
 }
 
@@ -193,7 +182,7 @@ bool StudentWorld::executeProjectileImpact(Actor* projectile)
     for (it = m_actorList.begin(); it != m_actorList.end(); it++)
     {
         // Compare addresses, continue if the same
-        if (*it == projectile)
+        if ((*it) == projectile)
             continue;
         // Find overlapping actor that can be activated
         if (isOverlapping(projectile, *it) && (*it)->canBeActivated())
