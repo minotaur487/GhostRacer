@@ -183,6 +183,16 @@ void StudentWorld::addNewActors()
         int randSize = randInt(2, 5);
         m_actorList.push_back(new OilSlick(x, VIEW_HEIGHT, randSize, this));
     }
+
+    // Add Holy Water Goodie
+    int chanceOfHolyWater = 100 + 10 * getLevel();
+    rand = randInt(0, chanceOfHolyWater - 1);
+    if (rand == 0)
+    {
+        int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
+        m_actorList.push_back(new HolyWaterGoodie(x, VIEW_HEIGHT, this));
+    }
+
 }
 
 bool StudentWorld::executeProjectileImpact(Actor* projectile)

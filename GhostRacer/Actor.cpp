@@ -408,9 +408,8 @@ void GhostRacer::doSomething()
 
 void Consumables::doSomething()
 {
-	StudentWorld* wPtr = getWorld();
-	GhostRacer* grPtr = wPtr->getGhostRacer();
-	// Move oil slick
+	GhostRacer* grPtr = getWorld()->getGhostRacer();
+	// Move consumable
 	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();		// These movement shills r similar	!!!
 	int hSpeed = getHorizSpeed();
 	double newY = getY() + vSpeed;
@@ -571,4 +570,37 @@ void Soul::doActivity(GhostRacer* gr)
 	}
 
 	spinClockwise(10, this);
+}
+
+
+///////////////////////////////////////////////
+//
+//	Holy Water Goodie Class
+//
+///////////////////////////////////////////////
+
+HolyWaterGoodie::HolyWaterGoodie(double startX, double startY, StudentWorld* wPtr)
+	: Consumables(IID_HOLY_WATER_GOODIE, startX, startY, 90, 2.0)
+{
+	setVertSpeed(-4);
+	setWorld(wPtr);
+	setCollisionWorthy(false);
+}
+
+void HolyWaterGoodie::doActivity(GhostRacer* gr)
+{
+	StudentWorld* wPtr = getWorld();
+	if (wPtr->isOverlapping(this, gr))
+	{
+		gr->addUnitsOfHolyWater(10);
+		setLife(false);
+		wPtr->playSound(SOUND_GOT_GOODIE);
+		wPtr->increaseScore(50);
+	}
+}
+
+bool HolyWaterGoodie::beSprayedIfAppropriate()	// SAME CODE AS HEALING GOODIE
+{
+	setLife(false);
+	return true;
 }

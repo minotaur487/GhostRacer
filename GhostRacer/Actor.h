@@ -187,6 +187,15 @@ public:
 	virtual void doActivity(GhostRacer* gr);
 };
 
+class HolyWaterGoodie : public Consumables
+{
+public:
+	HolyWaterGoodie(double startX, double startY, StudentWorld* wPtr);
+	virtual ~HolyWaterGoodie() {}
+	virtual void doActivity(GhostRacer* gr);
+	virtual bool beSprayedIfAppropriate();
+};
+
 class Soul : public Consumables
 {
 public:
