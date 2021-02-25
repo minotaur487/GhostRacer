@@ -156,6 +156,15 @@ void StudentWorld::addNewActors()
         m_actorList.push_back(new HumanPedestrian(x, VIEW_HEIGHT, this));
     }
 
+    // Add Zombie Pedestrians
+    int chanceZombiePed = max(100 - getLevel() * 10, 20);
+    rand = randInt(0, chanceZombiePed - 1);
+    if (rand == 0)
+    {
+        int x = randInt(0, VIEW_WIDTH);
+        m_actorList.push_back(new ZombiePedestrian(x, VIEW_HEIGHT, this));
+    }
+
     // Add lost souls
     int chanceLostSoul = 100;
     rand = randInt(0, chanceLostSoul - 1);

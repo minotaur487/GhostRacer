@@ -83,15 +83,24 @@ public:
 
 	void setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
 	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
+	virtual void actionsWhenDamaged() {}
 	virtual bool beSprayedIfAppropriate();
-	void updateLifeStatus() {
+	bool setLifeFalseIfAppropriate() {		// CHANGED THIS TO A BOOL
 		if (getHitPoints() <= 0)
+		{
 			setLife(false);	// Maybe declare as inline			!!!
+			return false;
+		}
+		return true;
 	}
 
 	// Functions that get/return
 
-	//virtual bool isAlive() { return getHitPoints() > 0 && m_alive; }
+	virtual bool isAlive() {
+		if (getHitPoints() <= 0)
+			setLife(false);
+		return Actor::isAlive();
+	}
 	int getHitPoints() const { return m_hitPoints; }
 
 private:
@@ -128,6 +137,7 @@ public:
 
 	virtual void doSomething();
 	virtual bool beSprayedIfAppropriate();
+	virtual void actionsWhenDamaged();
 private:
 	int ticksTilGrunt;
 };
@@ -179,6 +189,14 @@ public:
 	Consumables(int imageID, double startX, double startY, int dir, double size)
 		: Goodies(imageID, startX, startY, dir, size) {}
 	virtual ~Consumables() {}
+};
+
+class HealingGoodie : public Consumables
+{
+public:
+	HealingGoodie(double startX, double startY, StudentWorld* wPtr);
+	virtual ~HealingGoodie() {}
+	virtual void doSomething();
 };
 
 class Soul : public Consumables

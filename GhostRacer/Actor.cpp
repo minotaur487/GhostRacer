@@ -100,7 +100,6 @@ ZombiePedestrian::ZombiePedestrian(double startX, double startY, StudentWorld* w
 
 void ZombiePedestrian::doSomething()
 {
-	updateLifeStatus();
 	if (!isAlive())
 		return;
 
@@ -110,7 +109,8 @@ void ZombiePedestrian::doSomething()
 	if (wPtr->isOverlapping(this, grPtr))
 	{
 		grPtr->damageItself(5);
-		damageItself(2);		// SEE OTHER CIRCUMSTANCES SECTION FOR MORE DETAILS
+		damageItself(2);
+		actionsWhenDamaged();
 		return;
 	}
 
@@ -133,7 +133,13 @@ void ZombiePedestrian::doSomething()
 			setHorizSpeed(0);
 		}
 		ticksTilGrunt--;
+		if (ticksTilGrunt <= 0)
+		{
+			wPtr->playSound(SOUND_ZOMBIE_ATTACK);
+			ticksTilGrunt = 20;
+		}
 	}
+
 	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	int hSpeed = getHorizSpeed();
 	double newY = getY() + vSpeed;
@@ -146,9 +152,11 @@ void ZombiePedestrian::doSomething()
 	}
 
 	// Determine movement plan
-	decrementMovementPlanDist();
 	if (getMovementPlanDistance() > 0)
+	{
+		decrementMovementPlanDist();
 		return;
+	}
 	else
 	{
 		int newHSpeed = randInt(-3, 3);
@@ -165,13 +173,26 @@ void ZombiePedestrian::doSomething()
 
 bool ZombiePedestrian::beSprayedIfAppropriate()
 {
-	setHorizSpeed(getHorizSpeed() * -1);
-	if (getHorizSpeed() < 0)				//	Duplicate code with line 98	!!!
-		setDirection(180);
-	else if (getHorizSpeed() > 0)
-		setDirection(0);
-	getWorld()->playSound(SOUND_PED_HURT);
+	Character::beSprayedIfAppropriate();
+	actionsWhenDamaged();
 	return true;
+}
+
+void ZombiePedestrian::actionsWhenDamaged()
+{
+	StudentWorld* wPtr = getWorld();
+	if (!isAlive())
+	{
+		wPtr->playSound(SOUND_PED_DIE);
+		if (!wPtr->isOverlapping(this, wPtr->getGhostRacer()))
+		{
+			if (randInt(1, 5) == 1)
+				wPtr->addActor(new HealingGoodie(NULL, NULL, wPtr));
+		}
+		wPtr->increaseScore(150);
+	}
+	else
+		wPtr->playSound(SOUND_PED_HURT);
 }
 
 ///////////////////////////////////////////////
@@ -191,7 +212,6 @@ HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPt
 
 void HumanPedestrian::doSomething()
 {
-	updateLifeStatus();
 	if (!isAlive())
 		return;
 
@@ -275,7 +295,6 @@ void GhostRacer::moveGR()
 
 void GhostRacer::doSomething()
 {
-	updateLifeStatus();
 	if (!isAlive())
 		return;
 
@@ -287,7 +306,6 @@ void GhostRacer::doSomething()
 		if (dir > 90)
 		{
 			damageItself(10);
-			updateLifeStatus();
 			if (!isAlive())
 			{
 				wPtr->playSound(SOUND_PLAYER_DIE);			// NOT SURE IF I SHOULD RETURN HERE...SAME FOR RIGHT_EDGE
@@ -303,7 +321,6 @@ void GhostRacer::doSomething()
 		if (dir < 90)
 		{
 			damageItself(10);
-			updateLifeStatus();
 			if (!isAlive())
 			{
 				wPtr->playSound(SOUND_PLAYER_DIE);
@@ -511,4 +528,23 @@ void Soul::doSomething()
 	}
 
 	spinClockwise(10, this);
+}
+
+///////////////////////////////////////////////
+//
+//	Healing Goodie Class
+//
+///////////////////////////////////////////////
+
+HealingGoodie::HealingGoodie(double startX, double startY, StudentWorld* wPtr)
+	: Consumables(NULL, startX, startY, NULL, NULL)
+{
+	setVertSpeed(NULL);
+	setWorld(wPtr);
+	setCollisionWorthy(NULL);
+}
+
+void HealingGoodie::doSomething()
+{
+	
 }
