@@ -11,7 +11,6 @@ class Actor : public GraphObject
 public:
 	Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
 		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {
-		setActivatedBool(false);
 		setHorizSpeed(0);
 	}
 	virtual ~Actor() {}
@@ -25,28 +24,23 @@ public:
 	void setLife(bool life) { m_alive = life; }
 	void setWorld(StudentWorld* ptr) { m_param.m_worldPtr = ptr; }
 	void setCollisionWorthy(bool flag) { m_param.m_collisionWorthy = flag; }
-	void setActivatedBool(bool flag) { m_param.m_canBeActivated = flag; }
-	virtual bool beSprayedIfAppropriate() {	return false;	};
+	virtual bool beSprayedIfAppropriate() {	return false; };
 	
 		// Functions that get/return
 
 	int getVertSpeed() const { return m_param.m_vertSpeed; }
 	int getHorizSpeed() const { return m_param.m_horizSpeed; }
-	bool isSprayable() const { return m_param.m_isSprayable; }
 	bool isCollisionWorthy() const { return m_param.m_collisionWorthy; }
 	virtual bool isAlive() const { return m_alive; }
-	bool canBeActivated() const { return m_param.m_canBeActivated; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
 private:
 		//	struct
 	struct additionalParam
 	{
-		bool m_canBeActivated;
 		int m_vertSpeed;
 		int m_horizSpeed;
 		bool m_collisionWorthy;
 		StudentWorld* m_worldPtr;
-		bool m_isSprayable;
 	};
 
 		// Data members
@@ -174,21 +168,14 @@ private:
 	int m_unitsOfHolyWater;
 };
 
-class Goodies : public Actor
+class Consumables : public Actor
 {
 public:
-	Goodies(int imageID, double startX, double startY, int dir, double size, unsigned int depth = 2)
+	Consumables(int imageID, double startX, double startY, int dir, double size, unsigned int depth = 2)
 		: Actor(imageID, startX, startY, dir, size, depth) {}
-	virtual ~Goodies() {}
-	//virtual bool isActive() = 0;			// FOR CONSUMABLES I THINK				!!!
-};
-
-class Consumables : public Goodies
-{
-public:
-	Consumables(int imageID, double startX, double startY, int dir, double size)
-		: Goodies(imageID, startX, startY, dir, size) {}
 	virtual ~Consumables() {}
+	virtual void doSomething();
+	virtual void doActivity(GhostRacer* gr) = 0;
 };
 
 class HealingGoodie : public Consumables
@@ -196,7 +183,8 @@ class HealingGoodie : public Consumables
 public:
 	HealingGoodie(double startX, double startY, StudentWorld* wPtr);
 	virtual ~HealingGoodie() {}
-	virtual void doSomething();
+	virtual bool beSprayedIfAppropriate();
+	virtual void doActivity(GhostRacer* gr);
 };
 
 class Soul : public Consumables
@@ -204,15 +192,14 @@ class Soul : public Consumables
 public:
 	Soul(double startX, double startY, StudentWorld* wPtr);
 	virtual ~Soul() {}
-	virtual void doSomething();
+	virtual void doActivity(GhostRacer* gr);
 };
 
-class Environmentals : public Goodies
+class Environmentals : public Actor
 {
 public:
 	Environmentals(int imageID, double startX, double startY, int dir, double size)
-		// Check if oil slick has depth 2 aka is a goodie								!!!
-		: Goodies(imageID, startX, startY, dir, size) {}
+		: Actor(imageID, startX, startY, dir, size, 2) {}	// Check the depths
 	virtual ~Environmentals() {}
 };
 

@@ -34,7 +34,7 @@ void spinClockwise(int delTheta, Actor* self)
 ///////////////////////////////////////////////
 
 bool Character::beSprayedIfAppropriate() {
-	if (isSprayable() && this != getWorld()->getGhostRacer())	// check ghost racer bit and inline	!!!
+	if (this != getWorld()->getGhostRacer())	// check ghost racer bit and inline	!!!
 	{
 		damageItself(1);
 		return true;
@@ -187,7 +187,7 @@ void ZombiePedestrian::actionsWhenDamaged()
 		if (!wPtr->isOverlapping(this, wPtr->getGhostRacer()))
 		{
 			if (randInt(1, 5) == 1)
-				wPtr->addActor(new HealingGoodie(NULL, NULL, wPtr));
+				wPtr->addActor(new HealingGoodie(getX(), getY(), wPtr));
 		}
 		wPtr->increaseScore(150);
 	}
@@ -400,6 +400,63 @@ void GhostRacer::doSomething()
 		moveGR();
 }
 
+///////////////////////////////////////////////
+//
+//	Consumables Class
+//
+///////////////////////////////////////////////
+
+void Consumables::doSomething()
+{
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+	// Move oil slick
+	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();		// These movement shills r similar	!!!
+	int hSpeed = getHorizSpeed();
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
+
+	// Check if out of bounds
+	if (!isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
+	}
+	doActivity(grPtr);
+}
+
+///////////////////////////////////////////////
+//
+//	Healing Goodie Class
+//
+///////////////////////////////////////////////
+
+HealingGoodie::HealingGoodie(double startX, double startY, StudentWorld* wPtr)
+	: Consumables(IID_HEAL_GOODIE, startX, startY, 0, 1.0)
+{
+	setVertSpeed(-4);
+	setCollisionWorthy(false);
+}
+
+void HealingGoodie::doActivity(GhostRacer* gr)
+{
+	StudentWorld* wPtr = getWorld();
+	if (wPtr->isOverlapping(this, gr))
+	{
+		gr->setHitPoints(gr->getHitPoints() + 10);
+		setLife(false);
+		wPtr->playSound(SOUND_GOT_GOODIE);
+		wPtr->increaseScore(250);
+	}
+}
+
+bool HealingGoodie::beSprayedIfAppropriate()
+{
+	setLife(false);
+	return true;
+}
+
 
 ///////////////////////////////////////////////
 //
@@ -502,24 +559,10 @@ Soul::Soul(double startX, double startY, StudentWorld* wPtr)
 	setCollisionWorthy(false);
 }
 
-void Soul::doSomething()
+void Soul::doActivity(GhostRacer* gr)
 {
 	StudentWorld* wPtr = getWorld();
-	GhostRacer* grPtr = wPtr->getGhostRacer();
-	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
-	int hSpeed = getHorizSpeed();
-
-	double newY = getY() + vSpeed;
-	double newX = getX() + hSpeed;
-	moveTo(newX, newY);
-
-	if (!isInBounds(getX(), getY()))
-	{
-		setLife(false);
-		return;
-	}
-
-	if (wPtr->isOverlapping(this, grPtr))
+	if (wPtr->isOverlapping(this, gr))
 	{
 		wPtr->incrementSoulsSaved();
 		setLife(false);
@@ -528,23 +571,4 @@ void Soul::doSomething()
 	}
 
 	spinClockwise(10, this);
-}
-
-///////////////////////////////////////////////
-//
-//	Healing Goodie Class
-//
-///////////////////////////////////////////////
-
-HealingGoodie::HealingGoodie(double startX, double startY, StudentWorld* wPtr)
-	: Consumables(NULL, startX, startY, NULL, NULL)
-{
-	setVertSpeed(NULL);
-	setWorld(wPtr);
-	setCollisionWorthy(NULL);
-}
-
-void HealingGoodie::doSomething()
-{
-	
 }
