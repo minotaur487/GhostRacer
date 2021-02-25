@@ -29,6 +29,22 @@ void spinClockwise(int delTheta, Actor* self)
 
 ///////////////////////////////////////////////
 //
+//	Character Class
+//
+///////////////////////////////////////////////
+
+bool Character::beSprayedIfAppropriate() {
+	if (isSprayable() && this != getWorld()->getGhostRacer())	// check ghost racer bit and inline	!!!
+	{
+		damageItself(1);
+		return true;
+	}
+	return false;
+}
+
+
+///////////////////////////////////////////////
+//
 //	Holy Water Projectile Class
 //
 ///////////////////////////////////////////////
@@ -46,7 +62,7 @@ void HolyWaterProjectile::doSomething()
 	if (!isAlive())
 		return;
 
-	if (getWorld()->executeProjectileImpact(this))
+  	if (getWorld()->executeProjectileImpact(this))
 		return;
 	else
 	{
@@ -69,10 +85,94 @@ void HolyWaterProjectile::doSomething()
 
 ///////////////////////////////////////////////
 //
-//	Actor Class
+//	Zombie Pedestrian Class
 //
 ///////////////////////////////////////////////
 
+ZombiePedestrian::ZombiePedestrian(double startX, double startY, StudentWorld* wPtr)
+	: Pedestrian(IID_ZOMBIE_PED, startX, startY, 3.0), ticksTilGrunt(0)
+{
+	setVertSpeed(-4);
+	setCollisionWorthy(true);
+	setWorld(wPtr);
+	// Movement plan of 0?
+}
+
+void ZombiePedestrian::doSomething()
+{
+	updateLifeStatus();
+	if (!isAlive())
+		return;
+
+	// If overlap with ghost racer
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+	if (wPtr->isOverlapping(this, grPtr))
+	{
+		grPtr->damageItself(5);
+		damageItself(2);		// SEE OTHER CIRCUMSTANCES SECTION FOR MORE DETAILS
+		return;
+	}
+
+	// Move zombie pedestrian
+	double delX = getX() - grPtr->getX();
+	double delY = getY() - grPtr->getY();
+	if (abs(delX) <= 30 && delY >= 0)	// =0 should already be taken care of above?
+	{
+		setDirection(270);
+		if (delX < 0)
+		{
+			setHorizSpeed(1);
+		}
+		else if (delX > 0)
+		{
+			setHorizSpeed(-1);
+		}
+		else
+		{
+			setHorizSpeed(0);
+		}
+		ticksTilGrunt--;
+	}
+	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
+	int hSpeed = getHorizSpeed();
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
+	if (!isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
+	}
+
+	// Determine movement plan
+	decrementMovementPlanDist();
+	if (getMovementPlanDistance() > 0)
+		return;
+	else
+	{
+		int newHSpeed = randInt(-3, 3);
+		while (newHSpeed == 0)
+			newHSpeed = randInt(-3, 3);
+		setHorizSpeed(newHSpeed);		// Check speed != 0		!!!
+		setMovementPlanDist(randInt(4, 32));
+		if (getHorizSpeed() < 0)
+			setDirection(180);
+		else if (getHorizSpeed() > 0)
+			setDirection(0);
+	}
+}
+
+bool ZombiePedestrian::beSprayedIfAppropriate()
+{
+	setHorizSpeed(getHorizSpeed() * -1);
+	if (getHorizSpeed() < 0)				//	Duplicate code with line 98	!!!
+		setDirection(180);
+	else if (getHorizSpeed() > 0)
+		setDirection(0);
+	getWorld()->playSound(SOUND_PED_HURT);
+	return true;
+}
 
 ///////////////////////////////////////////////
 //
@@ -81,10 +181,9 @@ void HolyWaterProjectile::doSomething()
 ///////////////////////////////////////////////
 
 HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPtr)
-	: Pedestrian(IID_HUMAN_PED, startX, startY, 2)
+	: Pedestrian(IID_HUMAN_PED, startX, startY, 2.0)
 {
 	setVertSpeed(-4);
-	setHorizSpeed(0);
 	setCollisionWorthy(true);
 	setWorld(wPtr);
 	// Movement plan of 0?
@@ -137,17 +236,15 @@ void HumanPedestrian::doSomething()
 	//doOtherCircumstances();		//		DETERMINE WHEN THIS OCCURS	!!!
 }
 
-void HumanPedestrian::doHW()
+bool HumanPedestrian::beSprayedIfAppropriate()
 {
-	if (true)					// FIGURE OUT HOW TO DETERMINE IF THEY OVERLAP	!!!
-	{
-		setHorizSpeed(getHorizSpeed() * -1);
-		if (getHorizSpeed() < 0)				//	Duplicate code with line 98	!!!
-			setDirection(180);
-		else if (getHorizSpeed() > 0)
-			setDirection(0);
-		getWorld()->playSound(SOUND_PED_HURT);
-	}
+ 	setHorizSpeed(getHorizSpeed() * -1);
+	if (getHorizSpeed() < 0)				//	Duplicate code with line 98	!!!
+		setDirection(180);
+	else if (getHorizSpeed() > 0)
+		setDirection(0);
+	getWorld()->playSound(SOUND_PED_HURT);
+	return true;
 }
 
 
@@ -162,7 +259,6 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 {
 	m_unitsOfHolyWater = 10;
 	setVertSpeed(0);
-	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollisionWorthy(true);
 }
@@ -298,7 +394,6 @@ OilSlick::OilSlick(double startX, double startY, double size, StudentWorld* wPtr
 	: Environmentals(IID_OIL_SLICK, startX, startY, 0, size)
 {
 	setWorld(wPtr);
-	setHorizSpeed(0);
 	setVertSpeed(-4);
 	setCollisionWorthy(false);
 }
@@ -352,7 +447,6 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 	: Environmentals(imageID, startX, startY, 0, 2.0)
 {
 	setVertSpeed(-4);
-	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollisionWorthy(false);
 } // CHECK DEPTH
@@ -387,7 +481,6 @@ Soul::Soul(double startX, double startY, StudentWorld* wPtr)
 	: Consumables(IID_SOUL_GOODIE, startX, startY, 0, 4.0)
 {
 	setVertSpeed(-4);
-	setHorizSpeed(0);
 	setWorld(wPtr);
 	setCollisionWorthy(false);
 }

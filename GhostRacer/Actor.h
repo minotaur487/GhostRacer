@@ -4,6 +4,7 @@
 #include "GraphObject.h"
 
 class StudentWorld;
+//#include "StudentWorld.h" // using getGhostRacer for beSprayed bool func CRASHING??????? WITH THIS LINE
 
 class Actor : public GraphObject
 {
@@ -11,24 +12,27 @@ public:
 	Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
 		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {
 		setActivatedBool(false);
+		setHorizSpeed(0);
 	}
 	virtual ~Actor() {}
 
 		// Functions that do
 
 	virtual void doSomething() = 0;
-	virtual void applyImpact() { return; };	// FIND BETTER WAY			!!!
+	//virtual void applyImpact() { return; };	// FIND BETTER WAY			!!!
 	void setVertSpeed(int speed) { m_param.m_vertSpeed = speed; }
 	void setHorizSpeed(int speed) { m_param.m_horizSpeed = speed; }
 	void setLife(bool life) { m_alive = life; }
 	void setWorld(StudentWorld* ptr) { m_param.m_worldPtr = ptr; }
 	void setCollisionWorthy(bool flag) { m_param.m_collisionWorthy = flag; }
 	void setActivatedBool(bool flag) { m_param.m_canBeActivated = flag; }
+	virtual bool beSprayedIfAppropriate() {	return false;	};
 	
 		// Functions that get/return
 
 	int getVertSpeed() const { return m_param.m_vertSpeed; }
 	int getHorizSpeed() const { return m_param.m_horizSpeed; }
+	bool isSprayable() const { return m_param.m_isSprayable; }
 	bool isCollisionWorthy() const { return m_param.m_collisionWorthy; }
 	virtual bool isAlive() const { return m_alive; }
 	bool canBeActivated() const { return m_param.m_canBeActivated; }
@@ -42,6 +46,7 @@ private:
 		int m_horizSpeed;
 		bool m_collisionWorthy;
 		StudentWorld* m_worldPtr;
+		bool m_isSprayable;
 	};
 
 		// Data members
@@ -78,7 +83,7 @@ public:
 
 	void setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
 	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
-	void applyImpact() { damageItself(1); }
+	virtual bool beSprayedIfAppropriate();
 	void updateLifeStatus() {
 		if (getHitPoints() <= 0)
 			setLife(false);	// Maybe declare as inline			!!!
@@ -96,8 +101,8 @@ private:
 class Pedestrian : public Character
 {
 public:
-	Pedestrian(int imageID, double startX, double startY, int hitPoints)
-		: Character(imageID, startX, startY, 2, 0, 2, 0), m_movementPlanDistance(0) {}
+	Pedestrian(int imageID, double startX, double startY, double size)
+		: Character(imageID, startX, startY, 2, 0, size), m_movementPlanDistance(0) {}
 	virtual ~Pedestrian() {}
 
 	// Functions that do
@@ -113,6 +118,20 @@ private:
 	int m_movementPlanDistance;
 };
 
+class ZombiePedestrian : public Pedestrian
+{
+public:
+	ZombiePedestrian(double startX, double startY, StudentWorld* wPtr);
+	virtual ~ZombiePedestrian() {}
+
+	// Functions that do
+
+	virtual void doSomething();
+	virtual bool beSprayedIfAppropriate();
+private:
+	int ticksTilGrunt;
+};
+
 class HumanPedestrian : public Pedestrian
 {
 public:
@@ -122,13 +141,7 @@ public:
 	// Functions that do
 
 	virtual void doSomething();
-
-private:
-	// Functions
-	void doHW();
-
-	// Data members
-	int m_movementPlanDistance;
+	virtual bool beSprayedIfAppropriate();
 };
 
 class GhostRacer : public Character

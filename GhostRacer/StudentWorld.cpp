@@ -185,9 +185,8 @@ bool StudentWorld::executeProjectileImpact(Actor* projectile)
         if ((*it) == projectile)
             continue;
         // Find overlapping actor that can be activated
-        if (isOverlapping(projectile, *it) && (*it)->canBeActivated())
+        if (isOverlapping(projectile, *it) && (*it)->beSprayedIfAppropriate())
         {
-            (*it)->applyImpact();
             projectile->setLife(false);
             return true;
         }

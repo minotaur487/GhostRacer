@@ -63,4 +63,4 @@ bool StudentWorld::isOverlapping(const Actor* i, const Actor* j) const
     return false;
 }
 
-#endif // STUDENTWORLD_H
+#endif // STUDENTWORLD_H_
