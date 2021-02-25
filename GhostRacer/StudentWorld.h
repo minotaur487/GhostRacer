@@ -39,7 +39,7 @@ public:
     bool isOverlapping(const Actor* a1, const Actor* a2) const;
     void incrementSoulsSaved() { m_soulsSaved++; }
     void decrementSoulsSaved() { m_soulsSaved--; }
-    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom);
+    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self = nullptr, bool flagToNotConsiderGR = false);
     bool determineLane(const int* lane, double& speed, double& y);
     bool executeProjectileImpact(Actor* projectile);
     void addActor(Actor* actor) { m_actorList.push_back(actor); }

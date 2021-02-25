@@ -262,18 +262,26 @@ bool StudentWorld::determineLane(const int* lane, double& speed, double& y)
     return false;
 }
 
-Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom)
+Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self, bool flagToNotConsiderGR)
 {
     list<Actor*>::iterator it;
     list<Actor*>::iterator res = m_actorList.end();
     // VIEW_HEIGHT = bottom, 0 = top
     double ry = sideComingInFrom == BOTTOM ? VIEW_HEIGHT + 1 : -1;
+    bool flag = true;
     for (it = m_actorList.begin(); it != m_actorList.end(); it++)
     {
         double x = (*it)->getX();
         double y = (*it)->getY();
+
+        // adjust flag to consider or not consider ghost racer as a collision worthy actor
+        if (flagToNotConsiderGR && (*it) == getGhostRacer())
+            flag = false;
+        else
+            flag = true;
+
         // if the current collision worthy actor's x is in the lane and has a y less than the current lowest actor
-        if (!(x >= lane[0] && x <= lane[1] && (*it)->isCollisionWorthy()))
+        if (!(self != (*it) && x >= lane[0] && x <= lane[1] && (*it)->isCollisionWorthy() && flag))
             continue;
         if (sideComingInFrom == BOTTOM && y < ry)
         {

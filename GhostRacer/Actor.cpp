@@ -634,7 +634,7 @@ void ZombieCab::doSomething()
 		curLane = L_LANE;
 	else
 		curLane = M_LANE;
-	Actor* closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, BOTTOM);
+	Actor* closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, BOTTOM, this);
 	bool CWActorPresent = false;
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;
@@ -648,7 +648,7 @@ void ZombieCab::doSomething()
 			return;
 		}
 	}
-	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP);
+	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this, true);// is the zombie cab supposed to want to ram gr?
 	CWActorPresent = false;
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;
