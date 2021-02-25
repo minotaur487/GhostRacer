@@ -640,8 +640,7 @@ void ZombieCab::doSomething()
 		CWActorPresent = true;
 	if (getVertSpeed() > grPtr->getVertSpeed() && CWActorPresent)
 	{
-		double delY = closestCollisionWorthyActor->getY() - getY();
-		assert(delY > 0);
+		double delY = abs(closestCollisionWorthyActor->getY() - getY());
 		if (delY < 96)
 		{
 			setVertSpeed(getVertSpeed() - 0.5);
@@ -654,8 +653,7 @@ void ZombieCab::doSomething()
 		CWActorPresent = true;
 	if (getVertSpeed() <= grPtr->getVertSpeed() && CWActorPresent)
 	{
-		double delY = getY() - closestCollisionWorthyActor->getY();
-		assert(delY > 0);
+		double delY = abs(getY() - closestCollisionWorthyActor->getY());
 		if (delY < 96 && closestCollisionWorthyActor != grPtr)	// cover issue if two are there and closer one is ghost racer
 		{
 			setVertSpeed(getVertSpeed() + 0.5);
