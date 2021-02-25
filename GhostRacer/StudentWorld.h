@@ -15,8 +15,15 @@ using namespace std;
     // Student World Constants
 const int LEFT_EDGE = ROAD_CENTER - ROAD_WIDTH / 2;
 const int RIGHT_EDGE = ROAD_CENTER + ROAD_WIDTH / 2;
+const int ML_EDGE = LEFT_EDGE + ROAD_WIDTH / 3;
+const int MR_EDGE = RIGHT_EDGE - ROAD_WIDTH / 3;
+const int R_LANE[2] = {MR_EDGE, RIGHT_EDGE - 1};
+const int L_LANE[2] = {LEFT_EDGE, ML_EDGE - 1}; // MARKER
+const int M_LANE[2] = {ML_EDGE, MR_EDGE - 1};
 const int N = VIEW_HEIGHT / SPRITE_HEIGHT;    // N number of yellow border lines on each side
 const int M = VIEW_HEIGHT / (4 * SPRITE_HEIGHT);      // M number of white border lines on each side
+const int TOP = 0;
+const int BOTTOM = 1;
 
 class StudentWorld : public GameWorld
 {
@@ -32,6 +39,8 @@ public:
     bool isOverlapping(const Actor* a1, const Actor* a2) const;
     void incrementSoulsSaved() { m_soulsSaved++; }
     void decrementSoulsSaved() { m_soulsSaved--; }
+    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom);
+    bool determineLane(const int* lane, double& speed, double& y);
     bool executeProjectileImpact(Actor* projectile);
     void addActor(Actor* actor) { m_actorList.push_back(actor); }
 

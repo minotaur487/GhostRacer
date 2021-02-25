@@ -11,7 +11,7 @@ class Actor : public GraphObject
 public:
 	Actor(int imageID, double startX, double startY, int dir, double size, unsigned int depth)
 		: GraphObject(imageID, startX, startY, dir, size, depth), m_alive(true) {
-		setHorizSpeed(0);
+		setHorizSpeed(0.0);
 	}
 	virtual ~Actor() {}
 
@@ -19,17 +19,18 @@ public:
 
 	virtual void doSomething() = 0;
 	//virtual void applyImpact() { return; };	// FIND BETTER WAY			!!!
-	void setVertSpeed(int speed) { m_param.m_vertSpeed = speed; }
-	void setHorizSpeed(int speed) { m_param.m_horizSpeed = speed; }
+	void setVertSpeed(double speed) { m_param.m_vertSpeed = speed; }
+	void setHorizSpeed(double speed) { m_param.m_horizSpeed = speed; }
 	void setLife(bool life) { m_alive = life; }
 	void setWorld(StudentWorld* ptr) { m_param.m_worldPtr = ptr; }
+	virtual void moveActor();
 	void setCollisionWorthy(bool flag) { m_param.m_collisionWorthy = flag; }
 	virtual bool beSprayedIfAppropriate() {	return false; };
 	
 		// Functions that get/return
 
-	int getVertSpeed() const { return m_param.m_vertSpeed; }
-	int getHorizSpeed() const { return m_param.m_horizSpeed; }
+	double getVertSpeed() const { return m_param.m_vertSpeed; }
+	double getHorizSpeed() const { return m_param.m_horizSpeed; }
 	bool isCollisionWorthy() const { return m_param.m_collisionWorthy; }
 	virtual bool isAlive() const { return m_alive; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
@@ -37,8 +38,8 @@ private:
 		//	struct
 	struct additionalParam
 	{
-		int m_vertSpeed;
-		int m_horizSpeed;
+		double m_vertSpeed;
+		double m_horizSpeed;
 		bool m_collisionWorthy;
 		StudentWorld* m_worldPtr;
 	};
@@ -101,12 +102,12 @@ private:
 	int m_hitPoints;
 };
 
-class Pedestrian : public Character
+class Autonomous : public Character
 {
 public:
-	Pedestrian(int imageID, double startX, double startY, double size)
-		: Character(imageID, startX, startY, 2, 0, size), m_movementPlanDistance(0) {}
-	virtual ~Pedestrian() {}
+	Autonomous(int imageID, double startX, double startY, int hitpoints, int dir, double size)
+		: Character(imageID, startX, startY, hitpoints, dir, size), m_movementPlanDistance(0) {}
+	virtual ~Autonomous() {}
 
 	// Functions that do
 
@@ -119,6 +120,31 @@ public:
 private:
 	// Data members
 	int m_movementPlanDistance;
+};
+
+class ZombieCab : public Autonomous
+{
+public:
+	ZombieCab(double startX, double startY, double vSpeed, StudentWorld* wPtr);
+	virtual ~ZombieCab() {}
+
+	virtual bool beSprayedIfAppropriate();
+	virtual void actionsWhenDamaged();
+	virtual void doSomething();
+	void indicateDamagedGhostRacer() { m_hasDamagedGhostRacer = true; }
+
+	bool hasDamagedGhostRacer() const { return m_hasDamagedGhostRacer; }
+
+private:
+	bool m_hasDamagedGhostRacer;
+};
+
+class Pedestrian : public Autonomous
+{
+public:
+	Pedestrian(int imageID, double startX, double startY, double size)
+		: Autonomous(imageID, startX, startY, 2, 0, size) {}
+	virtual ~Pedestrian() {}
 };
 
 class ZombiePedestrian : public Pedestrian
@@ -157,7 +183,7 @@ public:
 	// Functions that do
 
 	virtual void doSomething();
-	void moveGR();
+	virtual void moveActor();
 	void addUnitsOfHolyWater(int units) { m_unitsOfHolyWater += units; }
 	void decrementUnitsOfHolyWater() { m_unitsOfHolyWater--; }
 

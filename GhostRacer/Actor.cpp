@@ -2,6 +2,7 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
 #include <cmath>
+#include <cassert>	// remove after testing
 using namespace std;
 
 #define PI 3.14159265
@@ -23,6 +24,28 @@ void spinClockwise(int delTheta, Actor* self)
 		// 360 + dir - delTheta
 		int angle = 360 + self->getDirection() - delTheta;
 		self->setDirection(angle);
+	}
+}
+
+
+///////////////////////////////////////////////
+//
+//	Actor Class
+//
+///////////////////////////////////////////////
+
+void Actor::moveActor()
+{
+	GhostRacer* grPtr = getWorld()->getGhostRacer();
+	double vSpeed = getVertSpeed() - grPtr->getVertSpeed();
+	double hSpeed = getHorizSpeed();
+	double newY = getY() + vSpeed;
+	double newX = getX() + hSpeed;
+	moveTo(newX, newY);
+	if (!isInBounds(getX(), getY()))
+	{
+		setLife(false);
+		return;
 	}
 }
 
@@ -140,16 +163,7 @@ void ZombiePedestrian::doSomething()
 		}
 	}
 
-	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
-	int hSpeed = getHorizSpeed();
-	double newY = getY() + vSpeed;
-	double newX = getX() + hSpeed;
-	moveTo(newX, newY);
-	if (!isInBounds(getX(), getY()))
-	{
-		setLife(false);
-		return;
-	}
+	moveActor();
 
 	// Determine movement plan
 	if (getMovementPlanDistance() > 0)
@@ -159,7 +173,7 @@ void ZombiePedestrian::doSomething()
 	}
 	else
 	{
-		int newHSpeed = randInt(-3, 3);
+		double newHSpeed = randInt(-3, 3);
 		while (newHSpeed == 0)
 			newHSpeed = randInt(-3, 3);
 		setHorizSpeed(newHSpeed);		// Check speed != 0		!!!
@@ -225,16 +239,7 @@ void HumanPedestrian::doSomething()
 	}
 
 	// Move human pedestrian
-	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
-	int hSpeed = getHorizSpeed();
-	double newY = getY() + vSpeed;
-	double newX = getX() + hSpeed;
-	moveTo(newX, newY);
-	if (!isInBounds(getX(), getY()))
-	{
-		setLife(false);
-		return;
-	}
+	moveActor();
 
 	// Determine movement plan
 	decrementMovementPlanDist();
@@ -242,7 +247,7 @@ void HumanPedestrian::doSomething()
 		return;
 	else
 	{
-		int newHSpeed = randInt(-3, 3);
+		double newHSpeed = randInt(-3, 3);
 		while (newHSpeed == 0)
 			newHSpeed = randInt(-3, 3);
 		setHorizSpeed(newHSpeed);		// Check speed != 0		!!!
@@ -252,8 +257,6 @@ void HumanPedestrian::doSomething()
 		else if (getHorizSpeed() > 0)
 			setDirection(0);
 	}
-
-	//doOtherCircumstances();		//		DETERMINE WHEN THIS OCCURS	!!!
 }
 
 bool HumanPedestrian::beSprayedIfAppropriate()
@@ -283,7 +286,7 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 	setCollisionWorthy(true);
 }
 
-void GhostRacer::moveGR()
+void GhostRacer::moveActor()
 {
 	double maxShiftPerTick = 4.0;
 	double dir = getDirection() * PI / 180.0;			// Some stuff in algo seems superfluous				!!!
@@ -313,7 +316,7 @@ void GhostRacer::doSomething()
 		}
 		setDirection(82);
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
-		moveGR();
+		moveActor();
 		return;
 	}
 	if (getX() >= RIGHT_EDGE)		// CODE IS VERY SIMILAR TO LEFT EDGE			!!!
@@ -328,13 +331,13 @@ void GhostRacer::doSomething()
 		}
 		setDirection(98);
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
-		moveGR();
+		moveActor();
 		return;
 	}
 
 	// Check for inputs
 	int key;
-	int vSpeed = getVertSpeed();
+	double vSpeed = getVertSpeed();
 	dir = getDirection();
 	if (wPtr->getKey(key))
 	{
@@ -344,7 +347,7 @@ void GhostRacer::doSomething()
 		{
 			if (getUnitsOfHolyWater() < 1)
 			{
-				moveGR();
+				moveActor();
 				break;
 			}
 			// Add new holy water projectile
@@ -355,49 +358,49 @@ void GhostRacer::doSomething()
 
 			wPtr->playSound(SOUND_PLAYER_SPRAY);
 			decrementUnitsOfHolyWater();
-			moveGR();
+			moveActor();
 			break;
 		}
 		case KEY_PRESS_LEFT:
 			if (dir >= 114)
 			{
-				moveGR();
+				moveActor();
 				break;
 			}
 			setDirection(dir + 8);
-			moveGR();
+			moveActor();
 			break;
 		case KEY_PRESS_RIGHT:
 			if (dir <= 66)
 			{
-				moveGR();
+				moveActor();
 				break;
 			}			
 			setDirection(dir - 8);
-			moveGR();
+			moveActor();
 			break;
 		case KEY_PRESS_UP:
 			if (vSpeed >= 5)
 			{
-				moveGR();
+				moveActor();
 				break;
 			}			
 			setVertSpeed(vSpeed + 1);
-			moveGR();
+			moveActor();
 			break;
 		case KEY_PRESS_DOWN:
 			if (vSpeed <= -1)
 			{
-				moveGR();
+				moveActor();
 				break;
 			}			
 			setVertSpeed(vSpeed - 1);
-			moveGR();
+			moveActor();
 			break;
 		}
 	}
 	else
-		moveGR();
+		moveActor();
 }
 
 ///////////////////////////////////////////////
@@ -410,18 +413,7 @@ void Consumables::doSomething()
 {
 	GhostRacer* grPtr = getWorld()->getGhostRacer();
 	// Move consumable
-	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();		// These movement shills r similar	!!!
-	int hSpeed = getHorizSpeed();
-	double newY = getY() + vSpeed;
-	double newX = getX() + hSpeed;
-	moveTo(newX, newY);
-
-	// Check if out of bounds
-	if (!isInBounds(getX(), getY()))
-	{
-		setLife(false);
-		return;
-	}
+	moveActor();
 	doActivity(grPtr);
 }
 
@@ -476,18 +468,7 @@ void OilSlick::doSomething()
 	StudentWorld* wPtr = getWorld();
 	GhostRacer* grPtr = wPtr->getGhostRacer();
 	// Move oil slick
-	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();		// These movement shills r similar	!!!
-	int hSpeed = getHorizSpeed();
-	double newY = getY() + vSpeed;
-	double newX = getX() + hSpeed;
-	moveTo(newX, newY);
-
-	// Check if out of bounds
-	if (!isInBounds(getX(), getY()))
-	{
-		setLife(false);
-		return;
-	}
+	moveActor();
 
 	// Spin if overlap with ghost racer
 	if (wPtr->isOverlapping(this, grPtr))
@@ -526,21 +507,7 @@ BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* 
 
 void BorderLine::doSomething()
 {
-	GhostRacer* grPtr = getWorld()->getGhostRacer();
-	// Calculate speed
-	int vSpeed = getVertSpeed() - grPtr->getVertSpeed();
-	int hSpeed = getHorizSpeed();
-
-	// Get new position and update
-	double newY = getY() + vSpeed;
-	double newX = getX() + hSpeed;
-	moveTo(newX, newY);
-
-	if (!isInBounds(getX(), getY()))		// Also Similar			!!!
-	{
-		setLife(false);
-		return;
-	}
+	moveActor();
 }
 
 
@@ -603,4 +570,132 @@ bool HolyWaterGoodie::beSprayedIfAppropriate()	// SAME CODE AS HEALING GOODIE
 {
 	setLife(false);
 	return true;
+}
+
+
+///////////////////////////////////////////////
+//
+//	Zombie Cab Class
+//
+///////////////////////////////////////////////
+
+ZombieCab::ZombieCab(double startX, double startY, double vSpeed, StudentWorld* wPtr)
+	: Autonomous(IID_ZOMBIE_CAB, startX, startY, 3, 90, 4.0)
+{
+	setVertSpeed(vSpeed);
+	m_hasDamagedGhostRacer = false;
+	setWorld(wPtr);
+	setCollisionWorthy(true);
+}
+
+void ZombieCab::doSomething()
+{
+	if (!isAlive())
+		return;
+
+	// If overlap with ghost racer
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+	if (wPtr->isOverlapping(this, grPtr))
+	{
+		if (hasDamagedGhostRacer())
+		{
+			moveActor();
+			return;
+		}
+		else
+		{
+			wPtr->playSound(SOUND_VEHICLE_CRASH);
+			grPtr->damageItself(20);	// do steps that follow when it gets damaged
+			if (getX() <= grPtr->getX())
+			{
+				setHorizSpeed(-5);
+				int rand = randInt(0, 19);
+				setDirection(120 + rand);
+			}
+			else if (getX() > grPtr->getX())
+			{
+				setHorizSpeed(5);
+				int rand = randInt(0, 19);
+				setDirection(60 - rand);
+			}
+			indicateDamagedGhostRacer();
+		}
+	}
+
+	// Move zombie cab		// this is the step 3 mentioned earlier			!!!
+	moveActor();
+
+	double zombieCabX = getX();
+	const int* curLane;
+	if (zombieCabX >= R_LANE[0] && zombieCabX <= R_LANE[1])
+		curLane = R_LANE;
+	else if (zombieCabX >= L_LANE[0] && zombieCabX <= L_LANE[1])
+		curLane = L_LANE;
+	else
+		curLane = M_LANE;
+	Actor* closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, BOTTOM);
+	bool CWActorPresent = false;
+	if (closestCollisionWorthyActor != nullptr)
+		CWActorPresent = true;
+	if (getVertSpeed() > grPtr->getVertSpeed() && CWActorPresent)
+	{
+		double delY = closestCollisionWorthyActor->getY() - getY();
+		assert(delY > 0);
+		if (delY < 96)
+		{
+			setVertSpeed(getVertSpeed() - 0.5);
+			return;
+		}
+	}
+	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP);
+	CWActorPresent = false;
+	if (closestCollisionWorthyActor != nullptr)
+		CWActorPresent = true;
+	if (getVertSpeed() <= grPtr->getVertSpeed() && CWActorPresent)
+	{
+		double delY = getY() - closestCollisionWorthyActor->getY();
+		assert(delY > 0);
+		if (delY < 96 && closestCollisionWorthyActor != grPtr)	// cover issue if two are there and closer one is ghost racer
+		{
+			setVertSpeed(getVertSpeed() + 0.5);
+			return;
+		}
+	}
+
+	// Determine movement plan
+	decrementMovementPlanDist();
+	if (getMovementPlanDistance() > 0)
+		return;
+	else
+	{
+		setMovementPlanDist(randInt(4, 32));
+		setVertSpeed(getVertSpeed() + randInt(-2, 2));
+	}
+}
+
+bool ZombieCab::beSprayedIfAppropriate()	// SAME CODE AS HEALING GOODIE
+{
+	Character::beSprayedIfAppropriate();
+	actionsWhenDamaged();
+	return true;
+}
+
+void ZombieCab::actionsWhenDamaged()
+{
+	StudentWorld* wPtr = getWorld();
+	if (!isAlive())
+	{
+		wPtr->playSound(SOUND_VEHICLE_DIE);
+		int rand = randInt(1, 5);
+		if (rand == 1)
+		{
+			int randSize = randInt(2, 5);
+			wPtr->addActor(new OilSlick(getX(), getY(), randSize, wPtr));
+		}
+		wPtr->increaseScore(200);
+		return;
+	}
+	else
+		wPtr->playSound(SOUND_VEHICLE_HURT);
 }
