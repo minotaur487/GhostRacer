@@ -76,7 +76,16 @@ public:
 
 	// Functions that do
 
-	void setHitPoints(int hitPoints) { m_hitPoints = hitPoints; }
+	void setHitPoints(int hitPoints)
+	{ 
+		if (hitPoints >= 100)
+		{
+			m_hitPoints = 100;
+			return;
+		}
+		else
+			m_hitPoints = hitPoints;
+	}
 	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
 	virtual void actionsWhenDamaged() {}
 	virtual bool beSprayedIfAppropriate();
@@ -184,6 +193,7 @@ public:
 
 	virtual void doSomething();
 	virtual void moveActor();
+	virtual void actionsWhenDamaged();
 	void addUnitsOfHolyWater(int units) { m_unitsOfHolyWater += units; }
 	void decrementUnitsOfHolyWater() { m_unitsOfHolyWater--; }
 

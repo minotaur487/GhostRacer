@@ -207,7 +207,7 @@ void StudentWorld::addNewActors()
         int potentialLOne = randInt(1, 3);
         int potentialLTwo = potentialLOne == 1 ? 2 : 1;
         int potentialLThree = potentialLOne == 1 || potentialLOne == 2 ? 3 : 2;
-        int potentialLanes[] = { potentialLOne, potentialLTwo, potentialLTwo };
+        int potentialLanes[] = { potentialLOne, potentialLTwo, potentialLThree };
         for (int i = 0; i < 3; i++)
         {
             switch (potentialLanes[i])
@@ -215,12 +215,12 @@ void StudentWorld::addNewActors()
             case 1:
                 curLane[0] = R_LANE[0];
                 curLane[1] = R_LANE[1];
-                centerOfChosenLane = ROAD_CENTER + ROAD_WIDTH / 3;
+                centerOfChosenLane = ROAD_CENTER + ROAD_WIDTH / 3.0;
                 break;
             case 2:
                 curLane[0] = L_LANE[0];
                 curLane[1] = L_LANE[1];
-                centerOfChosenLane = ROAD_CENTER - ROAD_WIDTH / 3;
+                centerOfChosenLane = ROAD_CENTER - ROAD_WIDTH / 3.0;
                 break;
             case 3:
                 curLane[0] = M_LANE[0];
@@ -231,9 +231,9 @@ void StudentWorld::addNewActors()
             if (determineLane(curLane, initialVSpeed, newY))
                 break;
         }
-        if (!(initialVSpeed == NULL))    //avoid introducing cab
+        if (!(initialVSpeed == NULL))    // avoid introducing cab if there are no viable lanes
         {
-            m_actorList.push_back(new ZombieCab(centerOfChosenLane, newY, initialVSpeed, this));
+            addActor(new ZombieCab(centerOfChosenLane, newY, initialVSpeed, this));
         }
     }
 
@@ -242,7 +242,7 @@ void StudentWorld::addNewActors()
 bool StudentWorld::determineLane(const int* lane, double& speed, double& y)
 {
     Actor* closestCWActor = findClosestCollisionWorthyActor(lane, BOTTOM);
-    if (closestCWActor == nullptr || closestCWActor->getY() > VIEW_HEIGHT / 3)
+    if (closestCWActor == nullptr || closestCWActor->getY() > VIEW_HEIGHT / 3.0)
     {
         y = SPRITE_HEIGHT / 2;
         int rand = randInt(2, 4);
@@ -251,9 +251,9 @@ bool StudentWorld::determineLane(const int* lane, double& speed, double& y)
         return true;
     }
     closestCWActor = findClosestCollisionWorthyActor(lane, TOP);
-    if (closestCWActor == nullptr || closestCWActor->getY() < VIEW_HEIGHT * 2 / 3)
+    if (closestCWActor == nullptr || closestCWActor->getY() < VIEW_HEIGHT * 2.0 / 3.0)
     {
-        y = VIEW_HEIGHT - SPRITE_HEIGHT / 2;
+        y = VIEW_HEIGHT - SPRITE_HEIGHT / 2.0;
         int rand = randInt(2, 4);
         speed = getGhostRacer()->getVertSpeed() - rand;
         // break out of loop and proceed to step 3
@@ -266,23 +266,19 @@ Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int
 {
     list<Actor*>::iterator it;
     list<Actor*>::iterator res = m_actorList.end();
-    // VIEW_HEIGHT = bottom, 0 = top
+
+    // set ry to allow for first collision worthy actor encountered to be the initial one
     double ry = sideComingInFrom == BOTTOM ? VIEW_HEIGHT + 1 : -1;
-    bool flag = true;
     for (it = m_actorList.begin(); it != m_actorList.end(); it++)
     {
         double x = (*it)->getX();
         double y = (*it)->getY();
 
-        // adjust flag to consider or not consider ghost racer as a collision worthy actor
-        if (flagToNotConsiderGR && (*it) == getGhostRacer())
-            flag = false;
-        else
-            flag = true;
-
         // if the current collision worthy actor's x is in the lane and has a y less than the current lowest actor
-        if (!(self != (*it) && x >= lane[0] && x <= lane[1] && (*it)->isCollisionWorthy() && flag))
+        if (!(self != (*it) && x >= lane[0] && x <= lane[1] && (*it)->isCollisionWorthy()))
             continue;
+
+        // determine if this current actor is closer to whichever side specified
         if (sideComingInFrom == BOTTOM && y < ry)
         {
             res = it;
@@ -294,6 +290,25 @@ Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int
             ry = (*res)->getY();
         }
     }
+
+    // adjust flag to consider or not consider ghost racer as a collision worthy actor
+    bool flag = flagToNotConsiderGR ? false : true;
+    double grX = getGhostRacer()->getX();
+    double grY = getGhostRacer()->getY();
+    // determine if ghost racer is the closest collision worthy actor
+    if (grX >= lane[0] && grX <= lane[1] && flag)
+    {    
+        if (sideComingInFrom == BOTTOM && grY < ry)
+        {
+            return getGhostRacer();
+        }
+        else if (sideComingInFrom == TOP && grY > ry)
+        {
+            return getGhostRacer();
+        }
+    }
+
+    // if there is a collision worthy actor, return a pointer to it
     if (res != m_actorList.end())
         return (*res);
     else

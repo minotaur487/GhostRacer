@@ -296,6 +296,14 @@ void GhostRacer::moveActor()
 	moveTo(curX + delX, curY);
 }
 
+void GhostRacer::actionsWhenDamaged()
+{
+	if (!isAlive())
+	{
+		getWorld()->playSound(SOUND_PLAYER_DIE);
+	}
+}
+
 void GhostRacer::doSomething()
 {
 	if (!isAlive())
@@ -309,10 +317,7 @@ void GhostRacer::doSomething()
 		if (dir > 90)
 		{
 			damageItself(10);
-			if (!isAlive())
-			{
-				wPtr->playSound(SOUND_PLAYER_DIE);			// NOT SURE IF I SHOULD RETURN HERE...SAME FOR RIGHT_EDGE
-			}
+			actionsWhenDamaged();
 		}
 		setDirection(82);
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
@@ -324,10 +329,7 @@ void GhostRacer::doSomething()
 		if (dir < 90)
 		{
 			damageItself(10);
-			if (!isAlive())
-			{
-				wPtr->playSound(SOUND_PLAYER_DIE);
-			}
+			actionsWhenDamaged();
 		}
 		setDirection(98);
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
@@ -411,7 +413,7 @@ void GhostRacer::doSomething()
 
 void Consumables::doSomething()
 {
-	GhostRacer* grPtr = getWorld()->getGhostRacer();
+    GhostRacer* grPtr = getWorld()->getGhostRacer();
 	// Move consumable
 	moveActor();
 	doActivity(grPtr);
@@ -426,6 +428,7 @@ void Consumables::doSomething()
 HealingGoodie::HealingGoodie(double startX, double startY, StudentWorld* wPtr)
 	: Consumables(IID_HEAL_GOODIE, startX, startY, 0, 1.0)
 {
+	setWorld(wPtr);
 	setVertSpeed(-4);
 	setCollisionWorthy(false);
 }
@@ -566,7 +569,7 @@ void HolyWaterGoodie::doActivity(GhostRacer* gr)
 	}
 }
 
-bool HolyWaterGoodie::beSprayedIfAppropriate()	// SAME CODE AS HEALING GOODIE
+bool HolyWaterGoodie::beSprayedIfAppropriate()
 {
 	setLife(false);
 	return true;
@@ -606,7 +609,8 @@ void ZombieCab::doSomething()
 		else
 		{
 			wPtr->playSound(SOUND_VEHICLE_CRASH);
-			grPtr->damageItself(20);	// do steps that follow when it gets damaged
+			grPtr->damageItself(20);
+			grPtr->actionsWhenDamaged();
 			if (getX() <= grPtr->getX())
 			{
 				setHorizSpeed(-5);
@@ -623,9 +627,10 @@ void ZombieCab::doSomething()
 		}
 	}
 
-	// Move zombie cab		// this is the step 3 mentioned earlier			!!!
+	// Move zombie cab
 	moveActor();
 
+	// find which lane the zombie cab is in
 	double zombieCabX = getX();
 	const int* curLane;
 	if (zombieCabX >= R_LANE[0] && zombieCabX <= R_LANE[1])
@@ -634,10 +639,13 @@ void ZombieCab::doSomething()
 		curLane = L_LANE;
 	else
 		curLane = M_LANE;
+
+	// try to find the closest collision worthy actor in front
 	Actor* closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, BOTTOM, this);
 	bool CWActorPresent = false;
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;
+
 	if (getVertSpeed() > grPtr->getVertSpeed() && CWActorPresent)
 	{
 		double delY = abs(closestCollisionWorthyActor->getY() - getY());
@@ -647,14 +655,18 @@ void ZombieCab::doSomething()
 			return;
 		}
 	}
+
+	// try to find the closest collision worthy actor behind that's not gr
 	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this, true);// is the zombie cab supposed to want to ram gr?
 	CWActorPresent = false;
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;
+
 	if (getVertSpeed() <= grPtr->getVertSpeed() && CWActorPresent)
 	{
 		double delY = abs(getY() - closestCollisionWorthyActor->getY());
-		if (delY < 96 && closestCollisionWorthyActor != grPtr)	// cover issue if two are there and closer one is ghost racer
+		// the function to find closest collision worthy actor should have excluded gr
+		if (delY < 96 && closestCollisionWorthyActor != grPtr)
 		{
 			setVertSpeed(getVertSpeed() + 0.5);
 			return;
@@ -672,7 +684,7 @@ void ZombieCab::doSomething()
 	}
 }
 
-bool ZombieCab::beSprayedIfAppropriate()	// SAME CODE AS HEALING GOODIE
+bool ZombieCab::beSprayedIfAppropriate()
 {
 	Character::beSprayedIfAppropriate();
 	actionsWhenDamaged();
