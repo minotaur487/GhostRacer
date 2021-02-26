@@ -3,7 +3,6 @@
 #include "Actor.h"  // For isOverlapping, considering changing cuz this would take the whole file
 #include <string>
 #include <sstream>
-#include <iomanip>
 #include <list>
 using namespace std;
 
@@ -49,6 +48,8 @@ int StudentWorld::init()
     Actor* lastWB = *(--m_actorList.end());
     m_lastBDY = lastWB->getY();
 
+    setGameStatText(generateStatistics());
+
     return GWSTATUS_CONTINUE_GAME;
 }
 
@@ -64,7 +65,7 @@ int StudentWorld::move()
     }
     else if (getNumOfSoulsSaved() >= getLevel() * 2 + 5)
     {
-        //AWARD BONUS POINTS                                            !!!
+        increaseScore(m_bonusPoints);
         return GWSTATUS_FINISHED_LEVEL;
     }
     for (it = m_actorList.begin(); it != m_actorList.end(); it++)
@@ -93,8 +94,7 @@ int StudentWorld::move()
 
     // Update status text
     m_bonusPoints--;
-    generateStatistics();
-    // !!!  //
+    setGameStatText(generateStatistics());
 
     return GWSTATUS_CONTINUE_GAME;
 }
@@ -338,8 +338,17 @@ bool StudentWorld::executeProjectileImpact(Actor* projectile)
     return false;
 }
 
-void StudentWorld::generateStatistics()
+string StudentWorld::generateStatistics()
 {
     ostringstream oss;
-    oss << "Score: " << getScore()
+    string doublespace = "  ";
+    string score = "Score: " + to_string(getScore());
+    string level = "Lvl: " + to_string(getLevel());
+    string souls2save = "Souls2Save: " + to_string((2 * getLevel() + 5 - getSoulsSaved()));
+    string lives = "Lives: " + to_string(getLives());
+    string health = "Health: " + to_string(getGhostRacer()->getHitPoints());
+    string sprays = "Sprays: " + to_string(getGhostRacer()->getUnitsOfHolyWater());
+    string bonus = "Bonus: " + to_string(getBonusScore());
+    oss << score << doublespace << level << doublespace << souls2save << doublespace << lives << doublespace << health << doublespace << sprays << doublespace << bonus;
+    return oss.str();
 }
