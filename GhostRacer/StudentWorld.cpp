@@ -2,6 +2,8 @@
 #include "GameConstants.h"
 #include "Actor.h"  // For isOverlapping, considering changing cuz this would take the whole file
 #include <string>
+#include <sstream>
+#include <iomanip>
 #include <list>
 using namespace std;
 
@@ -23,6 +25,7 @@ StudentWorld::~StudentWorld()
 int StudentWorld::init()
 {
     m_soulsSaved = 0;
+    m_bonusPoints = 5000;
     m_ghostRacer = new GhostRacer(this);
 
     // Initialize yellow border lines
@@ -89,6 +92,8 @@ int StudentWorld::move()
     addNewActors();
 
     // Update status text
+    m_bonusPoints--;
+    generateStatistics();
     // !!!  //
 
     return GWSTATUS_CONTINUE_GAME;
@@ -331,4 +336,10 @@ bool StudentWorld::executeProjectileImpact(Actor* projectile)
         }
     }
     return false;
+}
+
+void StudentWorld::generateStatistics()
+{
+    ostringstream oss;
+    oss << "Score: " << getScore()
 }

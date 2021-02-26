@@ -53,12 +53,14 @@ private:
         // Helper functions
     void deleteDeadActors();
     void addNewActors();
+    void generateStatistics();
 
         // Data Members
     GhostRacer* m_ghostRacer;
     list<Actor*> m_actorList;
     double m_lastBDY;
     int m_soulsSaved;
+    int m_bonusPoints;
 };
 
 inline
