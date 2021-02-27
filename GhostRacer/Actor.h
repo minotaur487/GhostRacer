@@ -4,7 +4,6 @@
 #include "GraphObject.h"
 
 class StudentWorld;
-//#include "StudentWorld.h" // using getGhostRacer for beSprayed bool func CRASHING??????? WITH THIS LINE
 
 class Actor : public GraphObject
 {
@@ -35,8 +34,6 @@ public:
 	virtual bool isAlive() const { return m_alive; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
 private:
-		// Helper functions
-
 		//	struct
 	struct additionalParam
 	{
@@ -63,12 +60,12 @@ public:
 	HolyWaterProjectile(double startX, double startY, int dir, StudentWorld* wPtr);
 	~HolyWaterProjectile() {}
 
-	// Functions that do
+		// Functions that do
 
 	virtual void doSomething();
 	void addTravelDist(int dist) { m_travelDist += dist; }
 
-	// Functions that get/return
+		// Functions that get/return
 
 	int getDistTravelled() { return m_travelDist; }
 private:
@@ -82,7 +79,8 @@ public:
 		unsigned int depth = 0) : Actor(imageID, startX, startY, dir, size, depth), m_hitPoints(hitPoints) {}
 	virtual ~Character() {}
 
-	// Functions that do
+		// Functions that do
+
 	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
 	virtual bool beSprayedIfAppropriate();
 	void setHitPoints(int hitPoints)
@@ -96,7 +94,8 @@ public:
 			m_hitPoints = hitPoints;
 	}
 
-	// Functions that get/return
+		// Functions that get/return
+
 	virtual bool isAlive() {
 		if (getHitPoints() <= 0)
 			setLife(false);
@@ -105,10 +104,10 @@ public:
 	int getHitPoints() const { return m_hitPoints; }
 
 private:
-	// data members
+		// data members
 	int m_hitPoints;
 
-	// functions
+		// functions
 	virtual void actionsWhenDamaged() {}
 };
 
@@ -119,13 +118,13 @@ public:
 		: Character(imageID, startX, startY, hitpoints, dir, size), m_movementPlanDistance(0) {}
 	virtual ~Autonomous() {}
 
-	// Functions that do
+		// Functions that do
 
 	void decrementMovementPlanDist() { m_movementPlanDistance--; }
 	void setMovementPlanDist(int dist) { m_movementPlanDistance = dist; }
 	virtual void doSomething();
 
-	// Functions that get
+		// Functions that get
 
 	int getMovementPlanDistance() const { return m_movementPlanDistance; }
 private:
@@ -145,12 +144,13 @@ public:
 	virtual ~ZombieCab() {}
 
 		// functions that do
+
 	virtual bool beSprayedIfAppropriate();
 	void indicateDamagedGhostRacer() { m_hasDamagedGhostRacer = true; }
 
 		// functions that get
-	bool hasDamagedGhostRacer() const { return m_hasDamagedGhostRacer; }
 
+	bool hasDamagedGhostRacer() const { return m_hasDamagedGhostRacer; }
 private:
 		// data members
 	bool m_hasDamagedGhostRacer;
@@ -178,7 +178,7 @@ public:
 	ZombiePedestrian(double startX, double startY, StudentWorld* wPtr);
 	virtual ~ZombiePedestrian() {}
 
-	// Functions that do
+		// Functions that do
 
 	virtual bool beSprayedIfAppropriate();
 	virtual void moveActor();
@@ -198,7 +198,7 @@ public:
 	HumanPedestrian(double startX, double startY, StudentWorld* wPtr);
 	virtual ~HumanPedestrian() {}
 
-	// Functions that do
+		// Functions that do
 
 	virtual bool beSprayedIfAppropriate();
 private:
@@ -211,7 +211,7 @@ public:
 	GhostRacer(StudentWorld* wPtr);	// Ghost racer doesn't seem to have a horiz speed		!!!
 	virtual ~GhostRacer() {}
 
-	// Functions that do
+		// Functions that do
 
 	virtual void doSomething();
 	virtual void moveActor();
@@ -219,9 +219,9 @@ public:
 	void addUnitsOfHolyWater(int units) { m_unitsOfHolyWater += units; }
 	void decrementUnitsOfHolyWater() { m_unitsOfHolyWater--; }
 
-	// Functions that get/return
-	int getUnitsOfHolyWater() const { return m_unitsOfHolyWater; }
+		// Functions that get/return
 
+	int getUnitsOfHolyWater() const { return m_unitsOfHolyWater; }
 private:
 	int m_unitsOfHolyWater;
 };
@@ -232,7 +232,11 @@ public:
 	Consumables(int imageID, double startX, double startY, int dir, double size, unsigned int depth = 2)
 		: Actor(imageID, startX, startY, dir, size, depth) {}
 	virtual ~Consumables() {}
+
+		// Functions that do
+
 	virtual void doSomething();
+private:
 	virtual void doActivity(GhostRacer* gr) = 0;
 };
 
@@ -241,7 +245,11 @@ class HealingGoodie : public Consumables
 public:
 	HealingGoodie(double startX, double startY, StudentWorld* wPtr);
 	virtual ~HealingGoodie() {}
+
+		// Functions that do
+
 	virtual bool beSprayedIfAppropriate();
+private:
 	virtual void doActivity(GhostRacer* gr);
 };
 
@@ -250,8 +258,12 @@ class HolyWaterGoodie : public Consumables
 public:
 	HolyWaterGoodie(double startX, double startY, StudentWorld* wPtr);
 	virtual ~HolyWaterGoodie() {}
-	virtual void doActivity(GhostRacer* gr);
+
+		// Functions that do
+
 	virtual bool beSprayedIfAppropriate();
+private:
+	virtual void doActivity(GhostRacer* gr);
 };
 
 class Soul : public Consumables
@@ -259,8 +271,9 @@ class Soul : public Consumables
 public:
 	Soul(double startX, double startY, StudentWorld* wPtr);
 	virtual ~Soul() {}
-	virtual void doActivity(GhostRacer* gr);
+
 private:
+	virtual void doActivity(GhostRacer* gr);
 	void spinClockwise(int delTheta, Actor* self);
 };
 
@@ -277,21 +290,25 @@ void Soul::spinClockwise(int delTheta, Actor* self)
 	}
 }
 
-class BorderLine : public Actor
-{
-public:
-	BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr);
-	virtual ~BorderLine() {}
-	virtual void doSomething();
-};
-
 class OilSlick : public Consumables
 {
 public:
 	OilSlick(double startX, double startY, double size, StudentWorld* wPtr);
 	virtual ~OilSlick() {}
+
+private:
 	virtual void doActivity(GhostRacer* gr);
 };
 
+class BorderLine : public Actor
+{
+public:
+	BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr);
+	virtual ~BorderLine() {}
+
+		// Functions that do
+
+	virtual void doSomething();
+};
 
 #endif // Character_H_

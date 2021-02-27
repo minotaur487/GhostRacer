@@ -104,7 +104,8 @@ void StudentWorld::deleteDeadActors()
             delete* it;
             it = m_actorList.erase(it);
         }
-        it++;
+        else
+            it++;
     }
 }
 
@@ -118,16 +119,16 @@ void StudentWorld::addNewActors()
 
     if (deltaY >= SPRITE_HEIGHT)
     {
-        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE,
+        addActor(new BorderLine(IID_YELLOW_BORDER_LINE, LEFT_EDGE,
             newBorderY, this));
-        m_actorList.push_back(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE,
+        addActor(new BorderLine(IID_YELLOW_BORDER_LINE, RIGHT_EDGE,
             newBorderY, this));
     }
     if (deltaY >= 4.0 * SPRITE_HEIGHT)
     {
-        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, ML_EDGE,
+        addActor(new BorderLine(IID_WHITE_BORDER_LINE, ML_EDGE,
             newBorderY, this));
-        m_actorList.push_back(new BorderLine(IID_WHITE_BORDER_LINE, MR_EDGE,
+        addActor(new BorderLine(IID_WHITE_BORDER_LINE, MR_EDGE,
             newBorderY, this));
 
         // Save last white border line added
@@ -141,7 +142,7 @@ void StudentWorld::addNewActors()
     if (rand == 0)
     {
         int x = randInt(0, VIEW_WIDTH);
-        m_actorList.push_back(new HumanPedestrian(x, VIEW_HEIGHT, this));
+        addActor(new HumanPedestrian(x, VIEW_HEIGHT, this));
     }
 
     // Add Zombie Pedestrians
@@ -150,7 +151,7 @@ void StudentWorld::addNewActors()
     if (rand == 0)
     {
         int x = randInt(0, VIEW_WIDTH);
-        m_actorList.push_back(new ZombiePedestrian(x, VIEW_HEIGHT, this));
+        addActor(new ZombiePedestrian(x, VIEW_HEIGHT, this));
     }
 
     // Add lost souls
@@ -159,7 +160,7 @@ void StudentWorld::addNewActors()
     if (rand == 0)
     {
         int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
-        m_actorList.push_back(new Soul(x, VIEW_HEIGHT, this));
+        addActor(new Soul(x, VIEW_HEIGHT, this));
     }
 
     // Add oil slicks
@@ -169,7 +170,7 @@ void StudentWorld::addNewActors()
     {
         int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
         int randSize = randInt(2, 5);
-        m_actorList.push_back(new OilSlick(x, VIEW_HEIGHT, randSize, this));
+        addActor(new OilSlick(x, VIEW_HEIGHT, randSize, this));
     }
 
     // Add Holy Water Goodie
@@ -178,7 +179,7 @@ void StudentWorld::addNewActors()
     if (rand == 0)
     {
         int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
-        m_actorList.push_back(new HolyWaterGoodie(x, VIEW_HEIGHT, this));
+        addActor(new HolyWaterGoodie(x, VIEW_HEIGHT, this));
     }
 
     // Add Zombie Cabs
@@ -250,10 +251,10 @@ bool StudentWorld::determineLane(const int* lane, double& speed, double& y)
     return false;
 }
 
-Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self, bool flagToNotConsiderGR)
+Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self, bool flagToNotConsiderGR) const
 {
-    list<Actor*>::iterator it;
-    list<Actor*>::iterator res = m_actorList.end();
+    list<Actor*>::const_iterator it;
+    list<Actor*>::const_iterator res = m_actorList.end();
 
     // set ry to allow for first collision worthy actor encountered to be the initial one
     double ry = sideComingInFrom == BOTTOM ? VIEW_HEIGHT + 1 : -1;

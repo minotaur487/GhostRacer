@@ -46,7 +46,7 @@ public:
 
     GhostRacer* getGhostRacer() const { return m_ghostRacer; }
     int getNumOfSoulsSaved() const { return m_soulsSaved; }
-    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self = nullptr, bool flagToNotConsiderGR = false);
+    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self = nullptr, bool flagToNotConsiderGR = false) const;
     int getBonusScore() const { return m_bonusPoints; }
     int getSoulsSaved() const { return m_soulsSaved; }
 
