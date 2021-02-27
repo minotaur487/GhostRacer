@@ -83,7 +83,8 @@ public:
 	virtual ~Character() {}
 
 	// Functions that do
-
+	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
+	virtual bool beSprayedIfAppropriate();
 	void setHitPoints(int hitPoints)
 	{ 
 		if (hitPoints >= 100)
@@ -94,20 +95,8 @@ public:
 		else
 			m_hitPoints = hitPoints;
 	}
-	void damageItself(int hitPoints) { m_hitPoints -= hitPoints; }
-	virtual void actionsWhenDamaged() {}
-	virtual bool beSprayedIfAppropriate();
-	bool setLifeFalseIfAppropriate() {		// CHANGED THIS TO A BOOL
-		if (getHitPoints() <= 0)
-		{
-			setLife(false);	// Maybe declare as inline			!!!
-			return false;
-		}
-		return true;
-	}
 
 	// Functions that get/return
-
 	virtual bool isAlive() {
 		if (getHitPoints() <= 0)
 			setLife(false);
@@ -116,7 +105,11 @@ public:
 	int getHitPoints() const { return m_hitPoints; }
 
 private:
+	// data members
 	int m_hitPoints;
+
+	// functions
+	virtual void actionsWhenDamaged() {}
 };
 
 class Autonomous : public Character
@@ -130,13 +123,19 @@ public:
 
 	void decrementMovementPlanDist() { m_movementPlanDistance--; }
 	void setMovementPlanDist(int dist) { m_movementPlanDistance = dist; }
+	virtual void doSomething();
 
 	// Functions that get
 
 	int getMovementPlanDistance() const { return m_movementPlanDistance; }
 private:
-	// Data members
+		// Data members
 	int m_movementPlanDistance;
+		// functions
+	virtual void doDifferentiatedOverlappingAction() = 0;
+	virtual void doDifferentiatedMovement();
+	virtual void doDifferentiatedIntermediateSteps() = 0;
+	virtual void doDifferentiatedNewMovement();
 };
 
 class ZombieCab : public Autonomous
@@ -145,15 +144,22 @@ public:
 	ZombieCab(double startX, double startY, double vSpeed, StudentWorld* wPtr);
 	virtual ~ZombieCab() {}
 
+		// functions that do
 	virtual bool beSprayedIfAppropriate();
-	virtual void actionsWhenDamaged();
-	virtual void doSomething();
 	void indicateDamagedGhostRacer() { m_hasDamagedGhostRacer = true; }
 
+		// functions that get
 	bool hasDamagedGhostRacer() const { return m_hasDamagedGhostRacer; }
 
 private:
+		// data members
 	bool m_hasDamagedGhostRacer;
+
+		// functions
+	virtual void actionsWhenDamaged();
+	virtual void doDifferentiatedIntermediateSteps();
+	virtual void doDifferentiatedOverlappingAction();
+	virtual void doDifferentiatedNewMovement();
 };
 
 class Pedestrian : public Autonomous
@@ -162,10 +168,8 @@ public:
 	Pedestrian(int imageID, double startX, double startY, double size)
 		: Autonomous(imageID, startX, startY, 2, 0, size) {}
 	virtual ~Pedestrian() {}
-	virtual void doSomething();
 private:
-	virtual void doDifferentiatedOverlappingAction() = 0;
-	virtual void doDifferentiatedMovement() = 0;
+	virtual void doDifferentiatedIntermediateSteps() {}
 };
 
 class ZombiePedestrian : public Pedestrian
@@ -177,13 +181,13 @@ public:
 	// Functions that do
 
 	virtual bool beSprayedIfAppropriate();
-	virtual void actionsWhenDamaged();
 	virtual void moveActor();
 private:
 		// data members
 	int ticksTilGrunt;
 		
 		// functions
+	virtual void actionsWhenDamaged();
 	virtual void doDifferentiatedOverlappingAction();
 	virtual void doDifferentiatedMovement();
 };
@@ -199,7 +203,6 @@ public:
 	virtual bool beSprayedIfAppropriate();
 private:
 	virtual void doDifferentiatedOverlappingAction();
-	virtual void doDifferentiatedMovement();
 };
 
 class GhostRacer : public Character
@@ -274,15 +277,7 @@ void Soul::spinClockwise(int delTheta, Actor* self)
 	}
 }
 
-class Environmentals : public Actor
-{
-public:
-	Environmentals(int imageID, double startX, double startY, int dir, double size)
-		: Actor(imageID, startX, startY, dir, size, 2) {}	// Check the depths
-	virtual ~Environmentals() {}
-};
-
-class BorderLine : public Environmentals
+class BorderLine : public Actor
 {
 public:
 	BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr);
@@ -290,12 +285,12 @@ public:
 	virtual void doSomething();
 };
 
-class OilSlick : public Environmentals
+class OilSlick : public Consumables
 {
 public:
 	OilSlick(double startX, double startY, double size, StudentWorld* wPtr);
 	virtual ~OilSlick() {}
-	virtual void doSomething();
+	virtual void doActivity(GhostRacer* gr);
 };
 
 

@@ -42,7 +42,7 @@ void Actor::moveActor()
 ///////////////////////////////////////////////
 
 bool Character::beSprayedIfAppropriate() {
-	if (this != getWorld()->getGhostRacer())	// check ghost racer bit and inline	!!!
+	if (this != getWorld()->getGhostRacer())
 	{
 		damageItself(1);
 		return true;
@@ -93,11 +93,11 @@ void HolyWaterProjectile::doSomething()
 
 ///////////////////////////////////////////////
 //
-//	Pedestrian Class
+//	Autonomous Class
 //
 ///////////////////////////////////////////////
 
-void Pedestrian::doSomething()
+void Autonomous::doSomething()
 {
 	if (!isAlive())
 		return;
@@ -113,20 +113,162 @@ void Pedestrian::doSomething()
 	// Move pedestrian
 	moveActor();
 
+	// Do intermediate steps if any
+	doDifferentiatedIntermediateSteps();
+
 	// Determine movement plan
 	doDifferentiatedMovement();	// Difference is minor, but a difference is a difference
 	if (getMovementPlanDistance() <= 0)
 	{
-		double newHSpeed = randInt(-3, 3);
-		while (newHSpeed == 0)
-			newHSpeed = randInt(-3, 3);
-		setHorizSpeed(newHSpeed);
-		setMovementPlanDist(randInt(4, 32));
-		if (getHorizSpeed() < 0)
-			setDirection(180);
-		else if (getHorizSpeed() > 0)
-			setDirection(0);
+		doDifferentiatedNewMovement();
 	}
+}
+
+void Autonomous::doDifferentiatedNewMovement()
+{
+	double newHSpeed = randInt(-3, 3);
+	while (newHSpeed == 0)
+		newHSpeed = randInt(-3, 3);
+	setHorizSpeed(newHSpeed);
+	setMovementPlanDist(randInt(4, 32));
+	if (getHorizSpeed() < 0)
+		setDirection(180);
+	else if (getHorizSpeed() > 0)
+		setDirection(0);
+}
+
+void Autonomous::doDifferentiatedMovement()
+{
+	decrementMovementPlanDist();
+	if (getMovementPlanDistance() > 0)
+		return;
+};
+
+
+///////////////////////////////////////////////
+//
+//	Zombie Cab Class
+//
+///////////////////////////////////////////////
+
+ZombieCab::ZombieCab(double startX, double startY, double vSpeed, StudentWorld* wPtr)
+	: Autonomous(IID_ZOMBIE_CAB, startX, startY, 3, 90, 4.0)
+{
+	setVertSpeed(vSpeed);
+	m_hasDamagedGhostRacer = false;
+	setWorld(wPtr);
+	setCollisionWorthy(true);
+}
+
+void ZombieCab::doDifferentiatedIntermediateSteps()
+{
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+
+	// find which lane the zombie cab is in
+	double zombieCabX = getX();
+	const int* curLane;
+	if (zombieCabX >= R_LANE[0] && zombieCabX <= R_LANE[1])
+		curLane = R_LANE;
+	else if (zombieCabX >= L_LANE[0] && zombieCabX <= L_LANE[1])
+		curLane = L_LANE;
+	else
+		curLane = M_LANE;
+
+	// try to find the closest collision worthy actor in front
+	Actor* closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, BOTTOM, this);
+	bool CWActorPresent = false;
+	if (closestCollisionWorthyActor != nullptr)
+		CWActorPresent = true;
+
+	if (getVertSpeed() > grPtr->getVertSpeed() && CWActorPresent)
+	{
+		double delY = abs(closestCollisionWorthyActor->getY() - getY());
+		if (delY < 96)
+		{
+			setVertSpeed(getVertSpeed() - 0.5);
+			return;
+		}
+	}
+
+	// try to find the closest collision worthy actor behind that's not gr
+	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this, true);
+	CWActorPresent = false;
+	if (closestCollisionWorthyActor != nullptr)
+		CWActorPresent = true;
+
+	if (getVertSpeed() <= grPtr->getVertSpeed() && CWActorPresent)
+	{
+		double delY = abs(getY() - closestCollisionWorthyActor->getY());
+		// the function to find closest collision worthy actor should have excluded gr
+		if (delY < 96 && closestCollisionWorthyActor != grPtr)
+		{
+			setVertSpeed(getVertSpeed() + 0.5);
+			return;
+		}
+	}
+}
+
+void ZombieCab::doDifferentiatedOverlappingAction()
+{
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+	if (hasDamagedGhostRacer())
+	{
+		moveActor();
+		return;
+	}
+	else
+	{
+		wPtr->playSound(SOUND_VEHICLE_CRASH);
+		grPtr->damageItself(20);
+		grPtr->actionsWhenDamaged();
+		if (getX() <= grPtr->getX())
+		{
+			setHorizSpeed(-5);
+			int rand = randInt(0, 19);
+			setDirection(120 + rand);
+		}
+		else if (getX() > grPtr->getX())
+		{
+			setHorizSpeed(5);
+			int rand = randInt(0, 19);
+			setDirection(60 - rand);
+		}
+		indicateDamagedGhostRacer();
+	}
+};
+
+bool ZombieCab::beSprayedIfAppropriate()
+{
+	Character::beSprayedIfAppropriate();
+	actionsWhenDamaged();
+	return true;
+}
+
+void ZombieCab::actionsWhenDamaged()
+{
+	StudentWorld* wPtr = getWorld();
+	if (!isAlive())
+	{
+		wPtr->playSound(SOUND_VEHICLE_DIE);
+		int rand = randInt(1, 5);
+		if (rand == 1)
+		{
+			int randSize = randInt(2, 5);
+			wPtr->addActor(new OilSlick(getX(), getY(), randSize, wPtr));
+		}
+		wPtr->increaseScore(200);
+		return;
+	}
+	else
+		wPtr->playSound(SOUND_VEHICLE_HURT);
+}
+
+void ZombieCab::doDifferentiatedNewMovement()
+{
+	setMovementPlanDist(randInt(4, 32));
+	setVertSpeed(getVertSpeed() + randInt(-2, 2));
 }
 
 ///////////////////////////////////////////////
@@ -236,13 +378,6 @@ void HumanPedestrian::doDifferentiatedOverlappingAction()
 	return;
 };
 
-void HumanPedestrian::doDifferentiatedMovement()
-{
-	decrementMovementPlanDist();
-	if (getMovementPlanDistance() > 0)
-		return;
-};
-
 bool HumanPedestrian::beSprayedIfAppropriate()
 {
  	setHorizSpeed(getHorizSpeed() * -1);
@@ -273,7 +408,7 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 void GhostRacer::moveActor()
 {
 	double maxShiftPerTick = 4.0;
-	double dir = getDirection() * PI / 180.0;			// Some stuff in algo seems superfluous				!!!
+	double dir = getDirection() * PI / 180.0;
 	double delX = cos(dir) * maxShiftPerTick;
 	double curX = getX();
 	double curY = getY();
@@ -308,7 +443,7 @@ void GhostRacer::doSomething()
 		moveActor();
 		return;
 	}
-	if (getX() >= RIGHT_EDGE)		// CODE IS VERY SIMILAR TO LEFT EDGE			!!!
+	if (getX() >= RIGHT_EDGE)
 	{
 		if (dir < 90)
 		{
@@ -398,7 +533,6 @@ void GhostRacer::doSomething()
 void Consumables::doSomething()
 {
     GhostRacer* grPtr = getWorld()->getGhostRacer();
-	// Move consumable
 	moveActor();
 	doActivity(grPtr);
 }
@@ -443,39 +577,37 @@ bool HealingGoodie::beSprayedIfAppropriate()
 ///////////////////////////////////////////////
 
 OilSlick::OilSlick(double startX, double startY, double size, StudentWorld* wPtr)
-	: Environmentals(IID_OIL_SLICK, startX, startY, 0, size)
+	: Consumables(IID_OIL_SLICK, startX, startY, 0, size)
 {
 	setWorld(wPtr);
 	setVertSpeed(-4);
 	setCollisionWorthy(false);
 }
 
-void OilSlick::doSomething()
+void OilSlick::doActivity(GhostRacer* gr)
 {
 	StudentWorld* wPtr = getWorld();
-	GhostRacer* grPtr = wPtr->getGhostRacer();
-	// Move oil slick
-	moveActor();
 
 	// Spin if overlap with ghost racer
-	if (wPtr->isOverlapping(this, grPtr))
+	if (wPtr->isOverlapping(this, gr))
 	{
 		wPtr->playSound(SOUND_OIL_SLICK);
-		// Going to spin ghost racer here					TEST I actually can't tell by visuals if it works properly		!!!
+		// Going to spin ghost racer here
 		int rand = randInt(5, 20);
-		int grDir = grPtr->getDirection();
+		int grDir = gr->getDirection();
 		int prospectiveClockwise = grDir - rand;
 		int prospectiveCC = grDir + rand;
 		if (prospectiveCC <= 120)	// If grDir can adjust CC, go CC
 		{
-			grPtr->setDirection(prospectiveCC);
+			gr->setDirection(prospectiveCC);
 		}
 		else if (prospectiveClockwise >= 60)	// Else if grDir can adjust C, go C
 		{
-			grPtr->setDirection(prospectiveClockwise);
+			gr->setDirection(prospectiveClockwise);
 		}
 	}
 }
+
 
 ///////////////////////////////////////////////
 //
@@ -484,13 +616,12 @@ void OilSlick::doSomething()
 ///////////////////////////////////////////////
 
 BorderLine::BorderLine(int imageID, double startX, double startY, StudentWorld* wPtr)
-// Contradiction with depth, says 2 and 1 at different parts in spec			!!!
-	: Environmentals(imageID, startX, startY, 0, 2.0)
+	: Actor(imageID, startX, startY, 0, 2.0, 2)
 {
 	setVertSpeed(-4);
 	setWorld(wPtr);
 	setCollisionWorthy(false);
-} // CHECK DEPTH
+}
 
 void BorderLine::doSomething()
 {
@@ -557,139 +688,4 @@ bool HolyWaterGoodie::beSprayedIfAppropriate()
 {
 	setLife(false);
 	return true;
-}
-
-
-///////////////////////////////////////////////
-//
-//	Zombie Cab Class
-//
-///////////////////////////////////////////////
-
-ZombieCab::ZombieCab(double startX, double startY, double vSpeed, StudentWorld* wPtr)
-	: Autonomous(IID_ZOMBIE_CAB, startX, startY, 3, 90, 4.0)
-{
-	setVertSpeed(vSpeed);
-	m_hasDamagedGhostRacer = false;
-	setWorld(wPtr);
-	setCollisionWorthy(true);
-}
-
-void ZombieCab::doSomething()
-{
-	if (!isAlive())
-		return;
-
-	// If overlap with ghost racer
-	StudentWorld* wPtr = getWorld();
-	GhostRacer* grPtr = wPtr->getGhostRacer();
-	if (wPtr->isOverlapping(this, grPtr))
-	{
-		if (hasDamagedGhostRacer())
-		{
-			moveActor();
-			return;
-		}
-		else
-		{
-			wPtr->playSound(SOUND_VEHICLE_CRASH);
-			grPtr->damageItself(20);
-			grPtr->actionsWhenDamaged();
-			if (getX() <= grPtr->getX())
-			{
-				setHorizSpeed(-5);
-				int rand = randInt(0, 19);
-				setDirection(120 + rand);
-			}
-			else if (getX() > grPtr->getX())
-			{
-				setHorizSpeed(5);
-				int rand = randInt(0, 19);
-				setDirection(60 - rand);
-			}
-			indicateDamagedGhostRacer();
-		}
-	}
-
-	// Move zombie cab
-	moveActor();
-
-	// find which lane the zombie cab is in
-	double zombieCabX = getX();
-	const int* curLane;
-	if (zombieCabX >= R_LANE[0] && zombieCabX <= R_LANE[1])
-		curLane = R_LANE;
-	else if (zombieCabX >= L_LANE[0] && zombieCabX <= L_LANE[1])
-		curLane = L_LANE;
-	else
-		curLane = M_LANE;
-
-	// try to find the closest collision worthy actor in front
-	Actor* closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, BOTTOM, this);
-	bool CWActorPresent = false;
-	if (closestCollisionWorthyActor != nullptr)
-		CWActorPresent = true;
-
-	if (getVertSpeed() > grPtr->getVertSpeed() && CWActorPresent)
-	{
-		double delY = abs(closestCollisionWorthyActor->getY() - getY());
-		if (delY < 96)
-		{
-			setVertSpeed(getVertSpeed() - 0.5);
-			return;
-		}
-	}
-
-	// try to find the closest collision worthy actor behind that's not gr
-	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this, true);// is the zombie cab supposed to want to ram gr?
-	CWActorPresent = false;
-	if (closestCollisionWorthyActor != nullptr)
-		CWActorPresent = true;
-
-	if (getVertSpeed() <= grPtr->getVertSpeed() && CWActorPresent)
-	{
-		double delY = abs(getY() - closestCollisionWorthyActor->getY());
-		// the function to find closest collision worthy actor should have excluded gr
-		if (delY < 96 && closestCollisionWorthyActor != grPtr)
-		{
-			setVertSpeed(getVertSpeed() + 0.5);
-			return;
-		}
-	}
-
-	// Determine movement plan
-	decrementMovementPlanDist();
-	if (getMovementPlanDistance() > 0)
-		return;
-	else
-	{
-		setMovementPlanDist(randInt(4, 32));
-		setVertSpeed(getVertSpeed() + randInt(-2, 2));
-	}
-}
-
-bool ZombieCab::beSprayedIfAppropriate()
-{
-	Character::beSprayedIfAppropriate();
-	actionsWhenDamaged();
-	return true;
-}
-
-void ZombieCab::actionsWhenDamaged()
-{
-	StudentWorld* wPtr = getWorld();
-	if (!isAlive())
-	{
-		wPtr->playSound(SOUND_VEHICLE_DIE);
-		int rand = randInt(1, 5);
-		if (rand == 1)
-		{
-			int randSize = randInt(2, 5);
-			wPtr->addActor(new OilSlick(getX(), getY(), randSize, wPtr));
-		}
-		wPtr->increaseScore(200);
-		return;
-	}
-	else
-		wPtr->playSound(SOUND_VEHICLE_HURT);
 }

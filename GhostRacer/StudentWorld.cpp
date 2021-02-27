@@ -55,35 +55,18 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-    list<Actor*>::iterator it;
+
     // Have each active actor do something
-    m_ghostRacer->doSomething();
-    if (!m_ghostRacer->isAlive())
-    {
-        decLives();
-        return GWSTATUS_PLAYER_DIED;
-    }
-    else if (getNumOfSoulsSaved() >= getLevel() * 2 + 5)
-    {
-        increaseScore(m_bonusPoints);
-        return GWSTATUS_FINISHED_LEVEL;
-    }
+    int returnVal;
+    returnVal = tellActorToDoSomething(m_ghostRacer);
+    if (returnVal != 999)
+        return returnVal;
+    list<Actor*>::iterator it;
     for (it = m_actorList.begin(); it != m_actorList.end(); it++)
     {
-        if ((*it)->isAlive())
-        {
-            (*it)->doSomething();
-            if (!m_ghostRacer->isAlive())
-            {
-                decLives();
-                return GWSTATUS_PLAYER_DIED;
-            }
-            else if (getNumOfSoulsSaved() >= getLevel() * 2 + 5)
-            {
-                //AWARD BONUS POINTS                                            !!!
-                return GWSTATUS_FINISHED_LEVEL;
-            }
-        }
+        returnVal = tellActorToDoSomething((*it));
+        if (returnVal != 999)
+            return returnVal;
     }
 
     // Delete dead actors
@@ -338,7 +321,7 @@ bool StudentWorld::executeProjectileImpact(Actor* projectile)
     return false;
 }
 
-string StudentWorld::generateStatistics()
+string StudentWorld::generateStatistics() const
 {
     ostringstream oss;
     string doublespace = "  ";
@@ -351,4 +334,23 @@ string StudentWorld::generateStatistics()
     string bonus = "Bonus: " + to_string(getBonusScore());
     oss << score << doublespace << level << doublespace << souls2save << doublespace << lives << doublespace << health << doublespace << sprays << doublespace << bonus;
     return oss.str();
+}
+
+int StudentWorld::tellActorToDoSomething(Actor* ptr)
+{
+    if (ptr->isAlive())
+    {
+        ptr->doSomething();
+        if (!m_ghostRacer->isAlive())
+        {
+            decLives();
+            return GWSTATUS_PLAYER_DIED;
+        }
+        else if (getNumOfSoulsSaved() >= getLevel() * 2 + 5)
+        {
+            increaseScore(getBonusScore());
+            return GWSTATUS_FINISHED_LEVEL;
+        }
+    }
+    return 999;
 }

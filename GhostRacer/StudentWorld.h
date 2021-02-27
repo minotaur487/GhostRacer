@@ -54,7 +54,8 @@ private:
         // Helper functions
     void deleteDeadActors();
     void addNewActors();
-    string generateStatistics();
+    string generateStatistics() const;
+    int tellActorToDoSomething(Actor* ptr);
 
         // Data Members
     GhostRacer* m_ghostRacer;
