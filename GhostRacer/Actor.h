@@ -17,7 +17,6 @@ public:
 		// Functions that do
 
 	virtual void doSomething() = 0;
-	bool isInBounds(double x, double y);
 	void setVertSpeed(double speed) { m_param.m_vertSpeed = speed; }
 	void setHorizSpeed(double speed) { m_param.m_horizSpeed = speed; }
 	void setLife(bool life) { m_alive = life; }
@@ -28,6 +27,7 @@ public:
 	
 		// Functions that get/return
 
+	bool isInBounds(double x, double y) const;
 	double getVertSpeed() const { return m_param.m_vertSpeed; }
 	double getHorizSpeed() const { return m_param.m_horizSpeed; }
 	bool isCollisionWorthy() const { return m_param.m_collisionWorthy; }
@@ -49,7 +49,7 @@ private:
 };
 
 inline
-bool Actor::isInBounds(double x, double y)
+bool Actor::isInBounds(double x, double y) const
 {
 	return !(x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT);
 }
@@ -208,7 +208,7 @@ private:
 class GhostRacer : public Character
 {
 public:
-	GhostRacer(StudentWorld* wPtr);	// Ghost racer doesn't seem to have a horiz speed		!!!
+	GhostRacer(StudentWorld* wPtr);
 	virtual ~GhostRacer() {}
 
 		// Functions that do
