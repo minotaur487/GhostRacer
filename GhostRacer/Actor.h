@@ -18,7 +18,7 @@ public:
 		// Functions that do
 
 	virtual void doSomething() = 0;
-	//virtual void applyImpact() { return; };	// FIND BETTER WAY			!!!
+	bool isInBounds(double x, double y);
 	void setVertSpeed(double speed) { m_param.m_vertSpeed = speed; }
 	void setHorizSpeed(double speed) { m_param.m_horizSpeed = speed; }
 	void setLife(bool life) { m_alive = life; }
@@ -35,6 +35,8 @@ public:
 	virtual bool isAlive() const { return m_alive; }
 	StudentWorld* getWorld() const { return m_param.m_worldPtr; }
 private:
+		// Helper functions
+
 		//	struct
 	struct additionalParam
 	{
@@ -48,6 +50,12 @@ private:
 	bool m_alive;
 	additionalParam m_param;
 };
+
+inline
+bool Actor::isInBounds(double x, double y)
+{
+	return !(x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT);
+}
 
 class HolyWaterProjectile : public Actor
 {
@@ -154,6 +162,10 @@ public:
 	Pedestrian(int imageID, double startX, double startY, double size)
 		: Autonomous(imageID, startX, startY, 2, 0, size) {}
 	virtual ~Pedestrian() {}
+	virtual void doSomething();
+private:
+	virtual void doDifferentiatedOverlappingAction() = 0;
+	virtual void doDifferentiatedMovement() = 0;
 };
 
 class ZombiePedestrian : public Pedestrian
@@ -164,11 +176,16 @@ public:
 
 	// Functions that do
 
-	virtual void doSomething();
 	virtual bool beSprayedIfAppropriate();
 	virtual void actionsWhenDamaged();
+	virtual void moveActor();
 private:
+		// data members
 	int ticksTilGrunt;
+		
+		// functions
+	virtual void doDifferentiatedOverlappingAction();
+	virtual void doDifferentiatedMovement();
 };
 
 class HumanPedestrian : public Pedestrian
@@ -179,8 +196,10 @@ public:
 
 	// Functions that do
 
-	virtual void doSomething();
 	virtual bool beSprayedIfAppropriate();
+private:
+	virtual void doDifferentiatedOverlappingAction();
+	virtual void doDifferentiatedMovement();
 };
 
 class GhostRacer : public Character
@@ -238,7 +257,22 @@ public:
 	Soul(double startX, double startY, StudentWorld* wPtr);
 	virtual ~Soul() {}
 	virtual void doActivity(GhostRacer* gr);
+private:
+	void spinClockwise(int delTheta, Actor* self);
 };
+
+inline
+void Soul::spinClockwise(int delTheta, Actor* self)
+{
+	if (self->getDirection() >= delTheta)
+		self->setDirection(self->getDirection() - delTheta);
+	else
+	{
+		// 360 + dir - delTheta
+		int angle = 360 + self->getDirection() - delTheta;
+		self->setDirection(angle);
+	}
+}
 
 class Environmentals : public Actor
 {
@@ -263,5 +297,6 @@ public:
 	virtual ~OilSlick() {}
 	virtual void doSomething();
 };
+
 
 #endif // Character_H_

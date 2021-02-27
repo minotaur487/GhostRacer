@@ -1,2 +1,7 @@
-﻿  StudentWorld.cpp
+﻿  Actor.cpp
+  GameController.cpp
+  GameWorld.cpp
+  main.cpp
+  StudentWorld.cpp
+  Generating Code...
   GhostRacer.vcxproj -> C:\CS32\Project 3\GhostRacer\Debug\GhostRacer.exe

@@ -8,26 +8,6 @@ using namespace std;
 #define PI 3.14159265
 
 
-	//	Helper Functions
-
-bool isInBounds(double x, double y)
-{
-	return !(x < 0 || y < 0 || x > VIEW_WIDTH || y > VIEW_HEIGHT);
-}
-
-void spinClockwise(int delTheta, Actor* self)
-{
-	if (self->getDirection() >= delTheta)
-		self->setDirection(self->getDirection() - delTheta);
-	else
-	{
-		// 360 + dir - delTheta
-		int angle = 360 + self->getDirection() - delTheta;
-		self->setDirection(angle);
-	}
-}
-
-
 ///////////////////////////////////////////////
 //
 //	Actor Class
@@ -36,12 +16,17 @@ void spinClockwise(int delTheta, Actor* self)
 
 void Actor::moveActor()
 {
+	// Get new position
 	GhostRacer* grPtr = getWorld()->getGhostRacer();
 	double vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	double hSpeed = getHorizSpeed();
+
+	// Update position
 	double newY = getY() + vSpeed;
 	double newX = getX() + hSpeed;
 	moveTo(newX, newY);
+
+	// Check if out of bounds
 	if (!isInBounds(getX(), getY()))
 	{
 		setLife(false);
@@ -108,6 +93,44 @@ void HolyWaterProjectile::doSomething()
 
 ///////////////////////////////////////////////
 //
+//	Pedestrian Class
+//
+///////////////////////////////////////////////
+
+void Pedestrian::doSomething()
+{
+	if (!isAlive())
+		return;
+
+	// If overlap with ghost racer
+	StudentWorld* wPtr = getWorld();
+	GhostRacer* grPtr = wPtr->getGhostRacer();
+	if (wPtr->isOverlapping(this, grPtr))
+	{
+		doDifferentiatedOverlappingAction();
+	}
+
+	// Move pedestrian
+	moveActor();
+
+	// Determine movement plan
+	doDifferentiatedMovement();	// Difference is minor, but a difference is a difference
+	if (getMovementPlanDistance() <= 0)
+	{
+		double newHSpeed = randInt(-3, 3);
+		while (newHSpeed == 0)
+			newHSpeed = randInt(-3, 3);
+		setHorizSpeed(newHSpeed);
+		setMovementPlanDist(randInt(4, 32));
+		if (getHorizSpeed() < 0)
+			setDirection(180);
+		else if (getHorizSpeed() > 0)
+			setDirection(0);
+	}
+}
+
+///////////////////////////////////////////////
+//
 //	Zombie Pedestrian Class
 //
 ///////////////////////////////////////////////
@@ -118,26 +141,12 @@ ZombiePedestrian::ZombiePedestrian(double startX, double startY, StudentWorld* w
 	setVertSpeed(-4);
 	setCollisionWorthy(true);
 	setWorld(wPtr);
-	// Movement plan of 0?
 }
 
-void ZombiePedestrian::doSomething()
+void ZombiePedestrian::moveActor()
 {
-	if (!isAlive())
-		return;
-
-	// If overlap with ghost racer
 	StudentWorld* wPtr = getWorld();
 	GhostRacer* grPtr = wPtr->getGhostRacer();
-	if (wPtr->isOverlapping(this, grPtr))
-	{
-		grPtr->damageItself(5);
-		damageItself(2);
-		actionsWhenDamaged();
-		return;
-	}
-
-	// Move zombie pedestrian
 	double delX = getX() - grPtr->getX();
 	double delY = getY() - grPtr->getY();
 	if (abs(delX) <= 30 && delY >= 0)	// =0 should already be taken care of above?
@@ -163,27 +172,25 @@ void ZombiePedestrian::doSomething()
 		}
 	}
 
-	moveActor();
+	Actor::moveActor();
+}
 
-	// Determine movement plan
+void ZombiePedestrian::doDifferentiatedOverlappingAction()
+{
+	getWorld()->getGhostRacer()->damageItself(5);
+	damageItself(2);
+	actionsWhenDamaged();
+	return;
+};
+
+void ZombiePedestrian::doDifferentiatedMovement()
+{
 	if (getMovementPlanDistance() > 0)
 	{
 		decrementMovementPlanDist();
 		return;
 	}
-	else
-	{
-		double newHSpeed = randInt(-3, 3);
-		while (newHSpeed == 0)
-			newHSpeed = randInt(-3, 3);
-		setHorizSpeed(newHSpeed);		// Check speed != 0		!!!
-		setMovementPlanDist(randInt(4, 32));
-		if (getHorizSpeed() < 0)
-			setDirection(180);
-		else if (getHorizSpeed() > 0)
-			setDirection(0);
-	}
-}
+};
 
 bool ZombiePedestrian::beSprayedIfAppropriate()
 {
@@ -221,48 +228,25 @@ HumanPedestrian::HumanPedestrian(double startX, double startY, StudentWorld* wPt
 	setVertSpeed(-4);
 	setCollisionWorthy(true);
 	setWorld(wPtr);
-	// Movement plan of 0?
 }
 
-void HumanPedestrian::doSomething()
+void HumanPedestrian::doDifferentiatedOverlappingAction()
 {
-	if (!isAlive())
-		return;
+	getWorld()->getGhostRacer()->setLife(false);
+	return;
+};
 
-	// If overlap with ghost racer
-	StudentWorld* wPtr = getWorld();
-	GhostRacer* grPtr = wPtr->getGhostRacer();
-	if (wPtr->isOverlapping(this, grPtr))
-	{
-		grPtr->setLife(false);
-		return;
-	}
-
-	// Move human pedestrian
-	moveActor();
-
-	// Determine movement plan
+void HumanPedestrian::doDifferentiatedMovement()
+{
 	decrementMovementPlanDist();
 	if (getMovementPlanDistance() > 0)
 		return;
-	else
-	{
-		double newHSpeed = randInt(-3, 3);
-		while (newHSpeed == 0)
-			newHSpeed = randInt(-3, 3);
-		setHorizSpeed(newHSpeed);		// Check speed != 0		!!!
-		setMovementPlanDist(randInt(4, 32));
-		if (getHorizSpeed() < 0)
-			setDirection(180);
-		else if (getHorizSpeed() > 0)
-			setDirection(0);
-	}
-}
+};
 
 bool HumanPedestrian::beSprayedIfAppropriate()
 {
  	setHorizSpeed(getHorizSpeed() * -1);
-	if (getHorizSpeed() < 0)				//	Duplicate code with line 98	!!!
+	if (getHorizSpeed() < 0)
 		setDirection(180);
 	else if (getHorizSpeed() > 0)
 		setDirection(0);
