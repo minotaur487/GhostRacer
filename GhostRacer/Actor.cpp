@@ -192,7 +192,7 @@ void ZombieCab::doDifferentiatedIntermediateSteps()
 	}
 
 	// try to find the closest collision worthy actor behind that's not gr
-	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this, true);
+	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this);
 	CWActorPresent = false;
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;

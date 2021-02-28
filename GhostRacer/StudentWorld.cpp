@@ -1,6 +1,6 @@
 #include "StudentWorld.h"
 #include "GameConstants.h"
-#include "Actor.h"  // For isOverlapping, considering changing cuz this would take the whole file
+#include "Actor.h"  // for isOverlapping
 #include <string>
 #include <sstream>
 #include <list>
@@ -159,7 +159,7 @@ void StudentWorld::addNewActors()
     rand = randInt(0, chanceLostSoul - 1);
     if (rand == 0)
     {
-        int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
+        int x = randInt(LEFT_EDGE, RIGHT_EDGE);
         addActor(new Soul(x, VIEW_HEIGHT, this));
     }
 
@@ -168,7 +168,7 @@ void StudentWorld::addNewActors()
     rand = randInt(0, chanceOilSlick - 1);
     if (rand == 0)
     {
-        int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
+        int x = randInt(LEFT_EDGE, RIGHT_EDGE);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
         int randSize = randInt(2, 5);
         addActor(new OilSlick(x, VIEW_HEIGHT, randSize, this));
     }
@@ -178,7 +178,7 @@ void StudentWorld::addNewActors()
     rand = randInt(0, chanceOfHolyWater - 1);
     if (rand == 0)
     {
-        int x = randInt(LEFT_EDGE + 1, RIGHT_EDGE - 1);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
+        int x = randInt(LEFT_EDGE, RIGHT_EDGE);     // DO BORDERS COUNT AS PART OF THE ROAD??? PROBABLY NOT     !!!
         addActor(new HolyWaterGoodie(x, VIEW_HEIGHT, this));
     }
 
@@ -217,7 +217,7 @@ void StudentWorld::addNewActors()
                 centerOfChosenLane = ROAD_CENTER;
                 break;
             }
-            if (determineLane(curLane, initialVSpeed, newY))
+            if (tryLane(curLane, initialVSpeed, newY))
                 break;
         }
         if (!(initialVSpeed == NULL))    // avoid introducing cab if there are no viable lanes
@@ -228,7 +228,7 @@ void StudentWorld::addNewActors()
 
 }
 
-bool StudentWorld::determineLane(const int* lane, double& speed, double& y)
+bool StudentWorld::tryLane(const int* lane, double& speed, double& y)
 {
     Actor* closestCWActor = findClosestCollisionWorthyActor(lane, BOTTOM);
     if (closestCWActor == nullptr || closestCWActor->getY() > VIEW_HEIGHT / 3.0)
@@ -251,7 +251,7 @@ bool StudentWorld::determineLane(const int* lane, double& speed, double& y)
     return false;
 }
 
-Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self, bool flagToNotConsiderGR) const
+Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self) const
 {
     list<Actor*>::const_iterator it;
     list<Actor*>::const_iterator res = m_actorList.end();
@@ -280,12 +280,10 @@ Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int
         }
     }
 
-    // adjust flag to consider or not consider ghost racer as a collision worthy actor
-    bool flag = flagToNotConsiderGR ? false : true;
     double grX = getGhostRacer()->getX();
     double grY = getGhostRacer()->getY();
     // determine if ghost racer is the closest collision worthy actor
-    if (grX >= lane[0] && grX <= lane[1] && flag)
+    if (grX >= lane[0] && grX <= lane[1] && self != getGhostRacer())
     {    
         if (sideComingInFrom == BOTTOM && grY < ry)
         {
@@ -297,7 +295,7 @@ Actor* StudentWorld::findClosestCollisionWorthyActor(const int lane[], const int
         }
     }
 
-    // if there is a collision worthy actor, return a pointer to it
+    // if there is a closest collision worthy actor, return a pointer to it
     if (res != m_actorList.end())
         return (*res);
     else

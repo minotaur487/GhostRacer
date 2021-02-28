@@ -38,20 +38,20 @@ public:
 
     bool isOverlapping(const Actor* a1, const Actor* a2) const;
     void incrementSoulsSaved() { m_soulsSaved++; }
-    bool determineLane(const int* lane, double& speed, double& y);
+    bool tryLane(const int* lane, double& speed, double& y);
     bool executeProjectileImpact(Actor* projectile);
     void addActor(Actor* actor) { m_actorList.push_back(actor); }
 
     // Get functions
 
     GhostRacer* getGhostRacer() const { return m_ghostRacer; }
-    int getNumOfSoulsSaved() const { return m_soulsSaved; }
-    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self = nullptr, bool flagToNotConsiderGR = false) const;
-    int getBonusScore() const { return m_bonusPoints; }
-    int getSoulsSaved() const { return m_soulsSaved; }
+    Actor* findClosestCollisionWorthyActor(const int lane[], const int sideComingInFrom, const Actor* self = nullptr) const;
 
 private:
         // Helper functions
+    int getNumOfSoulsSaved() const { return m_soulsSaved; }
+    int getBonusScore() const { return m_bonusPoints; }
+    int getSoulsSaved() const { return m_soulsSaved; }
     void deleteDeadActors();
     void addNewActors();
     string generateStatistics() const;
