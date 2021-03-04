@@ -102,7 +102,6 @@ public:
 		return Actor::isAlive();
 	}
 	int getHitPoints() const { return m_hitPoints; }
-
 private:
 		// data members
 	int m_hitPoints;

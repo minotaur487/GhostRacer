@@ -16,12 +16,12 @@ using namespace std;
 
 void Actor::moveActor()
 {
-	// Get new position
+	// Get new speed
 	GhostRacer* grPtr = getWorld()->getGhostRacer();
 	double vSpeed = getVertSpeed() - grPtr->getVertSpeed();
 	double hSpeed = getHorizSpeed();
 
-	// Update position
+	// Get new position and update
 	double newY = getY() + vSpeed;
 	double newX = getX() + hSpeed;
 	moveTo(newX, newY);
@@ -70,8 +70,10 @@ void HolyWaterProjectile::doSomething()
 	if (!isAlive())
 		return;
 
+	// if the projectile hit something, return
   	if (getWorld()->executeProjectileImpact(this))
 		return;
+	// else, move forward
 	else
 	{
 		moveForward(SPRITE_HEIGHT);
@@ -110,14 +112,13 @@ void Autonomous::doSomething()
 		doDifferentiatedOverlappingAction();
 	}
 
-	// Move pedestrian
 	moveActor();
 
 	// Do intermediate steps if any
 	doDifferentiatedIntermediateSteps();
 
 	// Determine movement plan
-	doDifferentiatedMovement();	// Difference is minor, but a difference is a difference
+	doDifferentiatedMovement();
 	if (getMovementPlanDistance() <= 0)
 	{
 		doDifferentiatedNewMovement();
@@ -126,11 +127,16 @@ void Autonomous::doSomething()
 
 void Autonomous::doDifferentiatedNewMovement()
 {
+	// get new horizontal speed
 	double newHSpeed = randInt(-3, 3);
 	while (newHSpeed == 0)
 		newHSpeed = randInt(-3, 3);
+
+	// update horizontal speed and movement plan distance
 	setHorizSpeed(newHSpeed);
 	setMovementPlanDist(randInt(4, 32));
+
+	// update direction
 	if (getHorizSpeed() < 0)
 		setDirection(180);
 	else if (getHorizSpeed() > 0)
@@ -181,8 +187,10 @@ void ZombieCab::doDifferentiatedIntermediateSteps()
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;
 
+	// if there is a collision worthy actor in front and the current vertical speed is greater than ghost racer's
 	if (getVertSpeed() > grPtr->getVertSpeed() && CWActorPresent)
 	{
+		// if the collision worthy actor is too close, slow down
 		double delY = abs(closestCollisionWorthyActor->getY() - getY());
 		if (delY < 96)
 		{
@@ -191,16 +199,17 @@ void ZombieCab::doDifferentiatedIntermediateSteps()
 		}
 	}
 
-	// try to find the closest collision worthy actor behind that's not gr
+	// try to find the closest collision worthy actor behind
 	closestCollisionWorthyActor = wPtr->findClosestCollisionWorthyActor(curLane, TOP, this);
 	CWActorPresent = false;
 	if (closestCollisionWorthyActor != nullptr)
 		CWActorPresent = true;
 
+	// if there is a collision worthy actor behind and the current vertical speed is less than or equal to ghost racer's
 	if (getVertSpeed() <= grPtr->getVertSpeed() && CWActorPresent)
 	{
+		// if the collision worthy actor is too close and is not ghost racer, speed up
 		double delY = abs(getY() - closestCollisionWorthyActor->getY());
-		// the function to find closest collision worthy actor should have excluded gr
 		if (delY < 96 && closestCollisionWorthyActor != grPtr)
 		{
 			setVertSpeed(getVertSpeed() + 0.5);
@@ -213,6 +222,8 @@ void ZombieCab::doDifferentiatedOverlappingAction()
 {
 	StudentWorld* wPtr = getWorld();
 	GhostRacer* grPtr = wPtr->getGhostRacer();
+
+	// if the zombie cab has damaged ghost racer
 	if (hasDamagedGhostRacer())
 	{
 		moveActor();
@@ -220,15 +231,18 @@ void ZombieCab::doDifferentiatedOverlappingAction()
 	}
 	else
 	{
+		// execute crash sequence
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
 		grPtr->damageItself(20);
 		grPtr->actionsWhenDamaged();
+		// if the zombie cab's x coordinate is less than or equal to ghost racer's, swerve off to the left
 		if (getX() <= grPtr->getX())
 		{
 			setHorizSpeed(-5);
 			int rand = randInt(0, 19);
 			setDirection(120 + rand);
 		}
+		// else if the zombie cab's x coordinate is greater than ghost racer's, swerve off to the right
 		else if (getX() > grPtr->getX())
 		{
 			setHorizSpeed(5);
@@ -249,9 +263,11 @@ bool ZombieCab::beSprayedIfAppropriate()
 void ZombieCab::actionsWhenDamaged()
 {
 	StudentWorld* wPtr = getWorld();
+	// if zombie cab is not alive, execute death sequence
 	if (!isAlive())
 	{
 		wPtr->playSound(SOUND_VEHICLE_DIE);
+		// oil slick has 1 in 5 chance of spawning
 		int rand = randInt(1, 5);
 		if (rand == 1)
 		{
@@ -261,6 +277,7 @@ void ZombieCab::actionsWhenDamaged()
 		wPtr->increaseScore(200);
 		return;
 	}
+	// otherwise it got hurt
 	else
 		wPtr->playSound(SOUND_VEHICLE_HURT);
 }
@@ -289,10 +306,13 @@ void ZombiePedestrian::moveActor()
 {
 	StudentWorld* wPtr = getWorld();
 	GhostRacer* grPtr = wPtr->getGhostRacer();
+
+	// if zombie pedestrian is within 30 pixels horizontally and ahead of the ghost racer
 	double delX = getX() - grPtr->getX();
 	double delY = getY() - grPtr->getY();
-	if (abs(delX) <= 30 && delY >= 0)	// =0 should already be taken care of above?
+	if (abs(delX) <= 30 && delY >= 0)
 	{
+		// have zombie ped face it and follow ghost racer
 		setDirection(270);
 		if (delX < 0)
 		{
@@ -306,6 +326,7 @@ void ZombiePedestrian::moveActor()
 		{
 			setHorizSpeed(0);
 		}
+		// have zombie ped attack ghost racer
 		ticksTilGrunt--;
 		if (ticksTilGrunt <= 0)
 		{
@@ -343,12 +364,15 @@ bool ZombiePedestrian::beSprayedIfAppropriate()
 
 void ZombiePedestrian::actionsWhenDamaged()
 {
+	// if zombie ped is not alive
 	StudentWorld* wPtr = getWorld();
 	if (!isAlive())
 	{
 		wPtr->playSound(SOUND_PED_DIE);
+		// if zombie ped is overlapping with ghost racer
 		if (!wPtr->isOverlapping(this, wPtr->getGhostRacer()))
 		{
+			// there is a 1 and 5 chance for a healing goodie to spawn
 			if (randInt(1, 5) == 1)
 				wPtr->addActor(new HealingGoodie(getX(), getY(), wPtr));
 		}
@@ -380,11 +404,15 @@ void HumanPedestrian::doDifferentiatedOverlappingAction()
 
 bool HumanPedestrian::beSprayedIfAppropriate()
 {
+	// move the other way
  	setHorizSpeed(getHorizSpeed() * -1);
+
+	// face the other way
 	if (getHorizSpeed() < 0)
 		setDirection(180);
 	else if (getHorizSpeed() > 0)
 		setDirection(0);
+
 	getWorld()->playSound(SOUND_PED_HURT);
 	return true;
 }
@@ -407,9 +435,12 @@ GhostRacer::GhostRacer(StudentWorld* wPtr)
 
 void GhostRacer::moveActor()
 {
+	// get change in x
 	double maxShiftPerTick = 4.0;
 	double dir = getDirection() * PI / 180.0;
 	double delX = cos(dir) * maxShiftPerTick;
+
+	// update position
 	double curX = getX();
 	double curY = getY();
 	moveTo(curX + delX, curY);
@@ -429,49 +460,56 @@ void GhostRacer::doSomething()
 		return;
 
 	StudentWorld* wPtr = getWorld();
-	// Check for swerving into boundary
+	// Check for swerving into left boundary
 	int dir = getDirection();
 	if (getX() <= LEFT_EDGE)
 	{
+		// if gr is swerving into left boundary
 		if (dir > 90)
 		{
 			damageItself(10);
 			actionsWhenDamaged();
 		}
+		// make gr rebound other way
 		setDirection(82);
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
 		moveActor();
 		return;
 	}
+	// Check for swerving into right boundary
 	if (getX() >= RIGHT_EDGE)
 	{
+		// if gr is swerving into right boundary
 		if (dir < 90)
 		{
 			damageItself(10);
 			actionsWhenDamaged();
 		}
+		// make gr rebound other way
 		setDirection(98);
 		wPtr->playSound(SOUND_VEHICLE_CRASH);
 		moveActor();
 		return;
 	}
 
-	// Check for inputs
 	int key;
 	double vSpeed = getVertSpeed();
 	dir = getDirection();
+	// if there is a key input
 	if (wPtr->getKey(key))
 	{
 		switch (key)
 		{
+		// if space is pressed
 		case KEY_PRESS_SPACE:
 		{
+			// if there is no more units of holy water projectile, don't do anything
 			if (getUnitsOfHolyWater() < 1)
 			{
 				moveActor();
 				break;
 			}
-			// Add new holy water projectile
+			// Otherwise, add a new holy water projectile
 			double angleRad = (90 - dir) * PI / 180.0;
 			double newX = SPRITE_HEIGHT * sin(angleRad) + getX();
 			double newY = SPRITE_HEIGHT * cos(angleRad) + getY();
@@ -482,7 +520,9 @@ void GhostRacer::doSomething()
 			moveActor();
 			break;
 		}
+		// if left key is pressed
 		case KEY_PRESS_LEFT:
+			// if gr is not too far left, rotate gr 8 degrees left
 			if (dir >= 114)
 			{
 				moveActor();
@@ -491,7 +531,9 @@ void GhostRacer::doSomething()
 			setDirection(dir + 8);
 			moveActor();
 			break;
+		// if right key is pressed
 		case KEY_PRESS_RIGHT:
+			// if gr is not too far right, rotate gr 8 degrees right
 			if (dir <= 66)
 			{
 				moveActor();
@@ -500,7 +542,9 @@ void GhostRacer::doSomething()
 			setDirection(dir - 8);
 			moveActor();
 			break;
+		// if up key is pressed
 		case KEY_PRESS_UP:
+			// if gr is not too fast, speed up by one unit
 			if (vSpeed >= 5)
 			{
 				moveActor();
@@ -509,7 +553,9 @@ void GhostRacer::doSomething()
 			setVertSpeed(vSpeed + 1);
 			moveActor();
 			break;
+		// if down key is pressed
 		case KEY_PRESS_DOWN:
+			// if gr is not too slow, slow down up by one unit
 			if (vSpeed <= -1)
 			{
 				moveActor();
@@ -554,8 +600,10 @@ HealingGoodie::HealingGoodie(double startX, double startY, StudentWorld* wPtr)
 void HealingGoodie::doActivity(GhostRacer* gr)
 {
 	StudentWorld* wPtr = getWorld();
+	// if healing goodie is overlapping with ghost racer
 	if (wPtr->isOverlapping(this, gr))
 	{
+		// increase gr's hitpoints and destroy healing goodie
 		gr->setHitPoints(gr->getHitPoints() + 10);
 		setLife(false);
 		wPtr->playSound(SOUND_GOT_GOODIE);
@@ -588,20 +636,22 @@ void OilSlick::doActivity(GhostRacer* gr)
 {
 	StudentWorld* wPtr = getWorld();
 
-	// Spin if overlap with ghost racer
+	// if oil slick is overlapping with ghost racer
 	if (wPtr->isOverlapping(this, gr))
 	{
+		// Determine direction to spin ghost racer
 		wPtr->playSound(SOUND_OIL_SLICK);
-		// Going to spin ghost racer here
 		int rand = randInt(5, 20);
 		int grDir = gr->getDirection();
 		int prospectiveClockwise = grDir - rand;
 		int prospectiveCC = grDir + rand;
-		if (prospectiveCC <= 120)	// If grDir can adjust CC, go CC
+		// If grDir can adjust counterclockwise, go counterclockwise
+		if (prospectiveCC <= 120)
 		{
 			gr->setDirection(prospectiveCC);
 		}
-		else if (prospectiveClockwise >= 60)	// Else if grDir can adjust C, go C
+		// Else if grDir can adjust clockwise, go clockwise
+		else if (prospectiveClockwise >= 60)
 		{
 			gr->setDirection(prospectiveClockwise);
 		}
@@ -646,8 +696,10 @@ Soul::Soul(double startX, double startY, StudentWorld* wPtr)
 void Soul::doActivity(GhostRacer* gr)
 {
 	StudentWorld* wPtr = getWorld();
+	// if lost soul is overlapping with ghost racer
 	if (wPtr->isOverlapping(this, gr))
 	{
+		// increment souls saved and destroy the soul
 		wPtr->incrementSoulsSaved();
 		setLife(false);
 		wPtr->playSound(SOUND_GOT_SOUL);
@@ -675,8 +727,10 @@ HolyWaterGoodie::HolyWaterGoodie(double startX, double startY, StudentWorld* wPt
 void HolyWaterGoodie::doActivity(GhostRacer* gr)
 {
 	StudentWorld* wPtr = getWorld();
+	// if holy water refill goodie is overlapping with ghost racer
 	if (wPtr->isOverlapping(this, gr))
 	{
+		// increase the units of available spray by 10 and destroy the refill goodie
 		gr->addUnitsOfHolyWater(10);
 		setLife(false);
 		wPtr->playSound(SOUND_GOT_GOODIE);
